@@ -1,4 +1,4 @@
-nano /etc/kyt.txt
+
 
 ### INSTALL SCRIPT 
 #<pre><code>apt install -y wget screen && apt update -y && apt upgrade -y && apt install lolcat -y && gem install lolcat && wget -q https://raw.githubusercontent.com/jaka2m/vip/main/premi.sh && chmod +x premi.sh && screen -S install ./premi.sh
