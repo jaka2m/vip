@@ -8,7 +8,7 @@
 # =========================================
 
 # Hapus file premi.sh jika ada
-rm -f /root/premi.sh > /dev/null 2>&1
+rm -f /root/prem.sh > /dev/null 2>&1
 
 # Pastikan skrip dijalankan sebagai root
 if [ "${EUID}" -ne 0 ]; then
@@ -24,20 +24,19 @@ screen -r > /dev/null 2>&1
 EOF
 
 # Definisi Warna
-RED="\033[31m"
 GREEN="\e[92;1m"
+RED="\033[31m"
 YELLOW="\033[33m"
 BLUE="\033[36m"
-NC='\e[0m' # No Color
+FONT="\033[0m"
+GREENBG="\033[42;37m"
+REDBG="\033[41;37m"
+OK="${green}--->${FONT}"
+ERROR="${RED}[ERROR]${FONT}"
 GRAY="\e[1;30m"
-
-# Definisi Status
-OK="${GREEN}--->${NC}"
-ERROR="${RED}[ERROR]${NC}"
-
-# =========================================
-# Mulai Skrip
-# =========================================
+NC='\e[0m'
+red='\e[1;31m'
+green='\e[0;32m'
 
 # Bersihkan layar
 clear
@@ -56,9 +55,6 @@ echo -e "${YELLOW}----------------------------------------------------------${NC
 echo ""
 sleep 1
 
-# =========================================
-# Pengecekan Izin Skrip
-# =========================================
 ipsaya=$(wget -qO- ipinfo.io/ip)
 data_server=$(curl -v --insecure --silent https://google.com/ 2>&1 | grep Date | sed -e 's/< Date: //')
 date_list=$(date +"%Y-%m-%d" -d "$data_server")
@@ -84,10 +80,6 @@ checking_sc() {
     fi
 }
 checking_sc
-
-# =========================================
-# Pengecekan Sistem
-# =========================================
 
 # Pengecekan Arsitektur OS
 if [[ $(uname -m | awk '{print $1}') == "x86_64" ]]; then
@@ -115,13 +107,11 @@ else
     echo -e "${OK} Alamat IP ( ${GREEN}$IP${NC} )"
 fi
 
-# Validasi Berhasil
 echo ""
 read -p "$(echo -e "Tekan ${GRAY}[ ${NC}${GREEN}Enter${NC} ${GRAY}]${NC} Untuk Memulai Instalasi") "
 echo ""
 clear
 
-# Pengecekan Root dan OpenVZ (Diulang untuk memastikan setelah validasi awal)
 if [ "${EUID}" -ne 0 ]; then
     echo "Anda perlu menjalankan skrip ini sebagai root"
     exit 1
@@ -131,40 +121,17 @@ if [ "$(systemd-detect-virt)" == "openvz" ]; then
     exit 1
 fi
 
-# =========================================
-# Informasi Pengguna & Status Sertifikat (Pre-fetch)
-# =========================================
 echo -e "${GREEN}memuat...${NC}"
 clear
 
 MYIP=$(curl -sS ipv4.icanhazip.com)
-
-# USERNAME
 rm -f /usr/bin/user
 username=$(curl https://raw.githubusercontent.com/jaka2m/permission/main/ipmini | grep "$MYIP" | awk '{print $2}')
 echo "$username" > /usr/bin/user
 
 expx=$(curl https://raw.githubusercontent.com/jaka2m/permission/main/ipmini | grep "$MYIP" | awk '{print $3}')
 echo "$expx" > /usr/bin/e
-
-# DETAIL ORDER
-# oid tidak terdefinisi di sini, mungkin perlu ditambahkan jika ada.
-# username=$(cat /usr/bin/user) # Sudah ada di atas
-# exp=$(cat /usr/bin/e) # Sudah ada di atas
-
-# CERTIFICATE STATUS (Variabel 'valid' dan 'today' tidak terdefinisi di sini)
-# d1=$(date -d "$valid" +%s)
-# d2=$(date -d "$today" +%s)
-# certifacate=$(((d1 - d2) / 86400))
-
-# VPS Information (Variabel 'Exp' dan 'COLOR1' tidak terdefinisi di sini)
 DATE=$(date +'%Y-%m-%d')
-# datediff() {
-#     d1=$(date -d "$1" +%s)
-#     d2=$(date -d "$2" +%s)
-#     echo -e "$COLOR1 $NC Expiry In       : $(( (d1 - d2) / 86400 )) Days"
-# }
-# mai="datediff "$Exp" "$DATE""
 
 # Status Expired/Active
 Info="(${GREEN}Aktif${NC})"
@@ -184,7 +151,6 @@ clear
 # REPO
 REPO="https://raw.githubusercontent.com/jaka2m/vip/main/"
 
-# Waktu Instalasi (Variabel 'start' tidak digunakan setelah didefinisikan)
 start=$(date +%s)
 secs_to_human() {
     echo "Waktu instalasi : $((${1} / 3600)) jam $((((${1} / 60) % 60))) menit $((${1} % 60)) detik"
@@ -205,203 +171,113 @@ echo -e " ${green}│${NC}    TELEGRAM CH ${green}@testikuy_mang${NC} ADMIN ${gr
 echo -e " ${green}└─────────────────────────────────────────────────────┘${NC}"
 }
 
-## Fungsi-fungsi Bantuan untuk Pesan Status
+### Status
 function print_ok() {
-    echo -e "${OK} ${green}$1${FONT}"
+    echo -e "${OK} ${green} $1 ${FONT}"
 }
-
 function print_install() {
-    echo -e "${green} =============================== ${FONT}"
+	echo -e "${green} =============================== ${FONT}"
     echo -e "${YELLOW} # $1 ${FONT}"
-    echo -e "${green} =============================== ${FONT}"
+	echo -e "${green} =============================== ${FONT}"
     sleep 1
 }
 
 function print_error() {
-    echo -e "${ERROR} ${REDBG}$1${FONT}"
+    echo -e "${ERROR} ${REDBG} $1 ${FONT}"
 }
 
 function print_success() {
     if [[ 0 -eq $? ]]; then
-        echo -e "${green} =============================== ${FONT}"
+		echo -e "${green} =============================== ${FONT}"
         echo -e "${green} # $1 berhasil dipasang"
-        echo -e "${green} =============================== ${FONT}"
+		echo -e "${green} =============================== ${FONT}"
         sleep 2
     fi
 }
 
-## Pengecekan Hak Akses Root
+### Cek root
 function is_root() {
     if [[ 0 == "$UID" ]]; then
-        print_ok "Pengguna Root: Memulai proses instalasi."
+        print_ok "Root user Start installation process"
     else
-        print_error "Pengguna saat ini bukan root. Mohon beralih ke pengguna root dan jalankan skrip lagi."
-        exit 1 # Keluar dari skrip jika bukan root
+        print_error "The current user is not the root user, please switch to the root user and run the script again"
     fi
+
 }
 
-# Panggil fungsi pengecekan root di awal
-is_root
-
-## Pembuatan Direktori dan Pengumpulan Informasi Xray
-print_install "Membuat direktori dan mengumpulkan informasi Xray"
-
-# Buat direktori utama Xray
-mkdir -p /etc/xray
-
-# Kumpulkan informasi lokasi dan IP
-curl -s ipinfo.io/city >> /etc/xray/city
-curl -s ifconfig.me > /etc/xray/ipvps
-curl -s ipinfo.io/org | cut -d " " -f 2-10 >> /etc/xray/isp
-
-# Buat file domain dan direktori log
-touch /etc/xray/domain
-mkdir -p /var/log/xray
-chown www-data.www-data /var/log/xray
-chmod +x /var/log/xray # Ini mungkin seharusnya chmod 755 atau 775, bukan +x saja untuk direktori.
-touch /var/log/xray/access.log
-touch /var/log/xray/error.log
-
-# Buat direktori untuk data GeoVPN (opsional, tergantung penggunaan)
-mkdir -p /var/lib/geovpn >/dev/null 2>&1
-
-## Pengumpulan Informasi Sistem
-# Informasi Penggunaan RAM
-mem_used=0
-mem_total=0
-while IFS=":" read -r a b; do
-    case "$a" in
-        "MemTotal") ((mem_total=${b/kB}));;
-        "Shmem") ((mem_used+=${b/kB}));;
+# Buat direktori xray
+print_install "Membuat direktori xray"
+    mkdir -p /etc/xray
+    
+    curl -s ipinfo.io/city >> /etc/xray/city
+    curl -s ifconfig.me > /etc/xray/ipvps
+    curl -s ipinfo.io/org | cut -d " " -f 2-10 >> /etc/xray/isp
+    touch /etc/xray/domain
+    mkdir -p /var/log/xray
+    chown www-data.www-data /var/log/xray
+    chmod +x /var/log/xray
+    touch /var/log/xray/access.log
+    touch /var/log/xray/error.log
+    mkdir -p /var/lib/geovpn >/dev/null 2>&1
+    # // Ram Information
+    while IFS=":" read -r a b; do
+    case $a in
+        "MemTotal") ((mem_used+=${b/kB})); mem_total="${b/kB}" ;;
+        "Shmem") ((mem_used+=${b/kB}))  ;;
         "MemFree" | "Buffers" | "Cached" | "SReclaimable")
-            mem_used="$((mem_used+=${b/kB}))"
-        ;;
+        mem_used="$((mem_used-=${b/kB}))"
+    ;;
     esac
-done < /proc/meminfo
+    done < /proc/meminfo
+    Ram_Usage="$((mem_used / 1024))"
+    Ram_Total="$((mem_total / 1024))"
+    export tanggal=`date -d "0 days" +"%d-%m-%Y - %X" `
+    export OS_Name=$( cat /etc/os-release | grep -w PRETTY_NAME | head -n1 | sed 's/PRETTY_NAME//g' | sed 's/=//g' | sed 's/"//g' )
+    export Kernel=$( uname -r )
+    export Arch=$( uname -m )
+    export IP=$( curl -s https://ipinfo.io/ip/ )
 
-Ram_Total_MB="$((mem_total / 1024))" # Total RAM dalam MB
-
-# Mengumpulkan informasi tanggal, OS, Kernel, Arsitektur, dan IP
-export tanggal=$(date -d "0 days" +"%d-%m-%Y - %X")
-export OS_Name=$(cat /etc/os-release | grep -w PRETTY_NAME | head -n1 | sed 's/PRETTY_NAME=//g' | sed 's/"//g')
-export Kernel=$(uname -r)
-export Arch=$(uname -m)
-export IP=$(curl -s https://ipinfo.io/ip/)
-
-function first_setup() {
-    echo ""
-    echo -e "${YELLOW}----------------------------------------------------------${NC}"
-    echo -e "          Memulai Penyiapan Lingkungan Awal"
-    echo -e "${YELLOW}----------------------------------------------------------${NC}"
-    echo ""
-
-    # Setel zona waktu ke Asia/Jakarta
-    print_install "Menyetel Zona Waktu ke Asia/Jakarta"
+# Change Environment System
+function first_setup(){
     timedatectl set-timezone Asia/Jakarta
-    if [ $? -eq 0 ]; then
-        print_success "Zona Waktu berhasil disetel"
-    else
-        print_error "Gagal menyetel Zona Waktu"
-    fi
-
-    # Konfigurasi iptables-persistent untuk autosave
-    print_install "Mengkonfigurasi IPTables Persistent"
     echo iptables-persistent iptables-persistent/autosave_v4 boolean true | debconf-set-selections
     echo iptables-persistent iptables-persistent/autosave_v6 boolean true | debconf-set-selections
-    if [ $? -eq 0 ]; then
-        print_success "IPTables Persistent berhasil dikonfigurasi"
-    else
-        print_error "Gagal mengkonfigurasi IPTables Persistent"
-    fi
-
-    # Menampilkan pesan keberhasilan direktori Xray (dari bagian sebelumnya)
-    # Asumsi fungsi print_success didefinisikan di skrip utama
-    print_success "Direktori Xray siap"
-
-    # Mendapatkan informasi OS
-    ID_OS=$(cat /etc/os-release | grep -w ID | head -n1 | sed 's/=//g' | sed 's/"//g' | sed 's/ID//g')
-    PRETTY_NAME_OS=$(cat /etc/os-release | grep -w PRETTY_NAME | head -n1 | sed 's/=//g' | sed 's/"//g' | sed 's/PRETTY_NAME//g')
-
-    # Instalasi HAProxy berdasarkan OS
-    if [[ "$ID_OS" == "ubuntu" ]]; then
-        print_install "Menyiapkan Dependensi untuk Ubuntu ($PRETTY_NAME_OS)"
-        sudo apt update -y
-        if [ $? -ne 0 ]; then
-            print_error "Gagal memperbarui APT. Mohon periksa koneksi atau repositori."
-            exit 1
-        fi
-        apt-get install --no-install-recommends software-properties-common -y
-        add-apt-repository ppa:vbernat/haproxy-2.0 -y
-        apt-get -y install haproxy=2.0.\*
-        if [ $? -eq 0 ]; then
-            print_success "HAProxy 2.0.* berhasil dipasang di Ubuntu"
-        else
-            print_error "Gagal memasang HAProxy di Ubuntu"
-            exit 1
-        fi
-    elif [[ "$ID_OS" == "debian" ]]; then
-        print_install "Menyiapkan Dependensi untuk Debian ($PRETTY_NAME_OS)"
-        curl https://haproxy.debian.net/bernat.debian.org.gpg | gpg --dearmor >/usr/share/keyrings/haproxy.debian.net.gpg
-        echo "deb [signed-by=/usr/share/keyrings/haproxy.debian.net.gpg] http://haproxy.debian.net buster-backports-1.8 main" >/etc/apt/sources.list.d/haproxy.list
-        sudo apt-get update
-        if [ $? -ne 0 ]; then
-            print_error "Gagal memperbarui APT. Mohon periksa koneksi atau repositori."
-            exit 1
-        fi
-        apt-get -y install haproxy=1.8.\*
-        if [ $? -eq 0 ]; then
-            print_success "HAProxy 1.8.* berhasil dipasang di Debian"
-        else
-            print_error "Gagal memasang HAProxy di Debian"
-            exit 1
-        fi
-    else
-        print_error "OS Anda Tidak Didukung ($PRETTY_NAME_OS)"
-        exit 1
-    fi
+    print_success "Directory Xray"
+    if [[ $(cat /etc/os-release | grep -w ID | head -n1 | sed 's/=//g' | sed 's/"//g' | sed 's/ID//g') == "ubuntu" ]]; then
+    echo "Setup Dependencies $(cat /etc/os-release | grep -w PRETTY_NAME | head -n1 | sed 's/=//g' | sed 's/"//g' | sed 's/PRETTY_NAME//g')"
+    sudo apt update -y
+    apt-get install --no-install-recommends software-properties-common
+    add-apt-repository ppa:vbernat/haproxy-2.0 -y
+    apt-get -y install haproxy=2.0.\*
+elif [[ $(cat /etc/os-release | grep -w ID | head -n1 | sed 's/=//g' | sed 's/"//g' | sed 's/ID//g') == "debian" ]]; then
+    echo "Setup Dependencies For OS Is $(cat /etc/os-release | grep -w PRETTY_NAME | head -n1 | sed 's/=//g' | sed 's/"//g' | sed 's/PRETTY_NAME//g')"
+    curl https://haproxy.debian.net/bernat.debian.org.gpg |
+        gpg --dearmor >/usr/share/keyrings/haproxy.debian.net.gpg
+    echo deb "[signed-by=/usr/share/keyrings/haproxy.debian.net.gpg]" \
+        http://haproxy.debian.net buster-backports-1.8 main \
+        >/etc/apt/sources.list.d/haproxy.list
+    sudo apt-get update
+    apt-get -y install haproxy=1.8.\*
+else
+    echo -e " Your OS Is Not Supported ($(cat /etc/os-release | grep -w PRETTY_NAME | head -n1 | sed 's/=//g' | sed 's/"//g' | sed 's/PRETTY_NAME//g') )"
+    exit 1
+fi
 }
 
 ## GEO PROJECT
 clear
 function nginx_install() {
-    echo ""
-    echo -e "${YELLOW}----------------------------------------------------------${NC}"
-    echo -e "                 Memulai Instalasi Nginx"
-    echo -e "${YELLOW}----------------------------------------------------------${NC}"
-    echo ""
-
-    # Mendapatkan informasi OS
-    ID_OS=$(cat /etc/os-release | grep -w ID | head -n1 | sed 's/=//g' | sed 's/"//g' | sed 's/ID//g')
-    PRETTY_NAME_OS=$(cat /etc/os-release | grep -w PRETTY_NAME | head -n1 | sed 's/=//g' | sed 's/"//g' | sed 's/PRETTY_NAME//g')
-
-    # Instalasi Nginx berdasarkan OS
-    if [[ "$ID_OS" == "ubuntu" ]]; then
-        print_install "Menyiapkan Nginx untuk Ubuntu ($PRETTY_NAME_OS)"
-        # Perintah 'sudo add-apt-repository ppa:nginx/stable -y' dikomentari karena seringkali
-        # Nginx versi standar dari repositori Ubuntu sudah cukup.
-        # Jika Anda butuh versi stabil terbaru, aktifkan baris ini.
-        # sudo add-apt-repository ppa:nginx/stable -y
-        sudo apt-get install nginx -y
-
-        if [ $? -eq 0 ]; then
-            print_success "Nginx berhasil dipasang di Ubuntu"
-        else
-            print_error "Gagal memasang Nginx di Ubuntu"
-            # exit 1 # Aktifkan ini jika kegagalan instalasi Nginx harus menghentikan skrip
-        fi
-    elif [[ "$ID_OS" == "debian" ]]; then
-        print_install "Menyiapkan Nginx untuk Debian ($PRETTY_NAME_OS)" # Mengubah dari print_success menjadi print_install
-        apt -y install nginx
-
-        if [ $? -eq 0 ]; then
-            print_success "Nginx berhasil dipasang di Debian"
-        else
-            print_error "Gagal memasang Nginx di Debian"
-            # exit 1 # Aktifkan ini jika kegagalan instalasi Nginx harus menghentikan skrip
-        fi
+    # // Checking System
+    if [[ $(cat /etc/os-release | grep -w ID | head -n1 | sed 's/=//g' | sed 's/"//g' | sed 's/ID//g') == "ubuntu" ]]; then
+        print_install "Setup nginx For OS Is $(cat /etc/os-release | grep -w PRETTY_NAME | head -n1 | sed 's/=//g' | sed 's/"//g' | sed 's/PRETTY_NAME//g')"
+        # // sudo add-apt-repository ppa:nginx/stable -y 
+        sudo apt-get install nginx -y 
+    elif [[ $(cat /etc/os-release | grep -w ID | head -n1 | sed 's/=//g' | sed 's/"//g' | sed 's/ID//g') == "debian" ]]; then
+        print_success "Setup nginx For OS Is $(cat /etc/os-release | grep -w PRETTY_NAME | head -n1 | sed 's/=//g' | sed 's/"//g' | sed 's/PRETTY_NAME//g')"
+        apt -y install nginx 
     else
-        echo -e "${ERROR} OS Anda Tidak Didukung ( ${YELLOW}$PRETTY_NAME_OS${FONT} )"
-        # exit 1 # Aktifkan ini jika OS yang tidak didukung harus menghentikan skrip
+        echo -e " Your OS Is Not Supported ( ${YELLOW}$(cat /etc/os-release | grep -w PRETTY_NAME | head -n1 | sed 's/=//g' | sed 's/"//g' | sed 's/PRETTY_NAME//g')${FONT} )"
+        # // exit 1
     fi
 }
 
@@ -440,45 +316,34 @@ function base_package() {
 clear
 # Fungsi input domain
 function pasang_domain() {
-    clear
-    # samawa # Fungsi samawa tidak didefinisikan di sini, mungkin di tempat lain
-    echo -e ""
-    echo -e "  .----------------------------------."
-    echo -e "  |${green}  Silakan Pilih Tipe Domain di Bawah  ${NC}|"
-    echo -e "  '----------------------------------'"
-    echo -e "  ${green}1)${NC} Masukkan Subdomain Anda"
-    echo -e "  ${green}2)${NC} Gunakan Subdomain Acak"
-    echo -e "  ------------------------------------"
-    read -p "  Silakan pilih angka 1-2 atau Tombol Apa Saja (Acak) : " choice_domain
-    echo ""
-
-    if [[ "$choice_domain" == "1" ]]; then
-        echo -e "  ${green}Mohon Masukkan Subdomain Anda${NC}"
-        read -p "  Subdomain: " host1
-        
-        if [[ -z "$host1" ]]; then
-            echo -e "${RED}[ERROR]${NC} Subdomain tidak boleh kosong. Menggunakan subdomain acak."
-            # Lanjutkan ke penggunaan subdomain acak jika input kosong
-            wget "${REPO}cf.sh" && chmod +x cf.sh && ./cf.sh
-            rm -f /root/cf.sh
-            clear
-        else
-            echo "IP=" >> /var/lib/geovpn/ipvps.conf # Baris ini mungkin perlu disesuaikan jika IP tidak langsung dimasukkan di sini
-            echo "$host1" > /etc/xray/domain
-            echo "$host1" > /root/domain
-            echo -e "${green}Subdomain '$host1' berhasil disimpan.${NC}"
-            sleep 1
-        fi
-    elif [[ "$choice_domain" == "2" ]]; then
-        print_install "Memulai pengaturan Subdomain Acak..."
-        wget "${REPO}cf.sh" && chmod +x cf.sh && ./cf.sh
-        rm -f /root/cf.sh
-        clear
-    else
-        print_install "Pilihan tidak valid atau menggunakan Subdomain Acak."
-        wget "${REPO}cf.sh" && chmod +x cf.sh && ./cf.sh
-        rm -f /root/cf.sh
-        clear
+echo -e ""
+clear
+samawa
+    echo -e "   .----------------------------------."
+echo -e "   |\e[1;32mPlease Select a Domain Type Below \e[0m|"
+echo -e "   '----------------------------------'"
+echo -e "     \e[1;32m1)\e[0m Enter Your Subdomain"
+echo -e "     \e[1;32m2)\e[0m Use a Random Subdomain"
+echo -e "   ------------------------------------"
+read -p "   Please select numbers 1-2 or Any Button(Random) : " host
+echo ""
+if [[ $host == "1" ]]; then
+echo -e "   \e[1;32mPlease Enter Your Subdomain $NC"
+read -p "   Subdomain: " host1
+echo "IP=" >> /var/lib/geovpn/ipvps.conf
+echo $host1 > /etc/xray/domain
+echo $host1 > /root/domain
+echo ""
+elif [[ $host == "2" ]]; then
+#install cf
+wget ${REPO}ssh/cf.sh && chmod +x cf.sh && ./cf.sh
+rm -f /root/cf.sh
+clear
+else
+print_install "Random Subdomain/Domain is Used"
+wget ${REPO}cf.sh && chmod +x cf.sh && ./cf.sh
+rm -f /root/cf.sh
+clear
     fi
 }
 
@@ -608,8 +473,6 @@ bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release
     
     # Settings UP Nginix Server
     clear
-    rm -f /etc/xray/city >/dev/null 2>&1
-    rm -f /etc/xray/isp >/dev/null 2>&1
     curl -s ipinfo.io/city >>/etc/xray/city
     curl -s ipinfo.io/org | cut -d " " -f 2-10 >>/etc/xray/isp
     print_install "Memasang Konfigurasi Packet"
@@ -969,128 +832,43 @@ EOF
 
 function udp_mini(){
 clear
-    echo -e "${YELLOW}----------------------------------------------------------${NC}"
-    echo -e "                 Memulai Pengaturan UDP Mini"
-    echo -e "${YELLOW}----------------------------------------------------------${NC}"
-    echo ""
-
-    print_install "Memasang Skrip UDP Mini"
-    # Membuat direktori dan mengunduh skrip udp-mini
-    mkdir -p /usr/local/geovpn/
-    wget -q -O /usr/local/geovpn/udp-mini "https://raw.githubusercontent.com/jaka2m/project/refs/heads/main/badvpn/badvpn/udp-mini"
-    if [ $? -eq 0 ]; then
-        chmod +x /usr/local/geovpn/udp-mini
-        print_success "Skrip 'udp-mini' berhasil diunduh dan diberi izin eksekusi."
-    else
-        print_error "Gagal mengunduh skrip 'udp-mini'."
-        return 1 # Keluar dari fungsi jika skrip utama tidak berhasil diunduh
-    fi
-
-    print_install "Memasang Layanan Systemd untuk UDP Mini"
-    # Mengunduh file layanan systemd
-    wget -q -O /etc/systemd/system/udp-mini-1.service "https://raw.githubusercontent.com/jaka2m/project/refs/heads/main/badvpn/badvpn/udp-mini-1.service"
-    wget -q -O /etc/systemd/system/udp-mini-2.service "https://raw.githubusercontent.com/jaka2m/project/refs/heads/main/badvpn/badvpn/udp-mini-2.service"
-    wget -q -O /etc/systemd/system/udp-mini-3.service "https://raw.githubusercontent.com/jaka2m/project/refs/heads/main/badvpn/badvpn/udp-mini-3.service"
-
-    # Memeriksa apakah semua layanan berhasil diunduh
-    if [ ! -f /etc/systemd/system/udp-mini-1.service ] || \
-       [ ! -f /etc/systemd/system/udp-mini-2.service ] || \
-       [ ! -f /etc/systemd/system/udp-mini-3.service ]; then
-        print_error "Gagal mengunduh salah satu atau lebih file layanan UDP Mini."
-        return 1
-    else
-        print_success "Semua file layanan UDP Mini berhasil diunduh."
-    fi
-
-    # Memuat ulang daemon systemd
-    systemctl daemon-reload
-
-    # Mengaktifkan dan memulai layanan UDP Mini
-    for i in 1 2 3; do
-        SERVICE_NAME="udp-mini-${i}.service"
-        print_install "Mengelola Layanan $SERVICE_NAME"
-        systemctl disable "$SERVICE_NAME" &>/dev/null
-        systemctl stop "$SERVICE_NAME" &>/dev/null
-        systemctl enable "$SERVICE_NAME" &>/dev/null
-        systemctl start "$SERVICE_NAME" &>/dev/null
-
-        if systemctl is-active --quiet "$SERVICE_NAME"; then
-            print_success "Layanan $SERVICE_NAME berhasil diaktifkan dan dimulai."
-        else
-            print_error "Gagal mengaktifkan atau memulai layanan $SERVICE_NAME."
-        fi
-    done
-
-    echo ""
-    print_success "Pengaturan UDP Mini Selesai!"
-    echo -e "${YELLOW}----------------------------------------------------------${NC}"
-    echo ""
+print_install "MEMASANG UDP MINI"
+mkdir -p /usr/local/geovpn/
+wget -q -O /usr/local/geovpn/udp-mini "https://raw.githubusercontent.com/jaka2m/project/refs/heads/main/badvpn/udp-mini"
+chmod +x /usr/local/geovpn/udp-mini
+wget -q -O /etc/systemd/system/udp-mini-1.service "https://raw.githubusercontent.com/jaka2m/project/refs/heads/main/badvpn/udp-mini-1.service"
+wget -q -O /etc/systemd/system/udp-mini-2.service "https://raw.githubusercontent.com/jaka2m/project/refs/heads/main/badvpn/udp-mini-2.service"
+wget -q -O /etc/systemd/system/udp-mini-3.service "https://raw.githubusercontent.com/jaka2m/project/refs/heads/main/badvpn/udp-mini-3.service"
+systemctl disable udp-mini-1
+systemctl stop udp-mini-1
+systemctl enable udp-mini-1
+systemctl start udp-mini-1
+systemctl disable udp-mini-2
+systemctl stop udp-mini-2
+systemctl enable udp-mini-2
+systemctl start udp-mini-2
+systemctl disable udp-mini-3
+systemctl stop udp-mini-3
+systemctl enable udp-mini-3
+systemctl start udp-mini-3
+echo ""
+print_success "UDP MINI"
 }
 
 function ssh_udp(){
-    clear
-    echo -e "${YELLOW}----------------------------------------------------------${NC}"
-    echo -e "               Memulai Pengaturan SSH UDP"
-    echo -e "${YELLOW}----------------------------------------------------------${NC}"
-    echo ""
-
-    print_install "Membuat direktori dan mengunduh file SSH UDP"
-    # Buat direktori khusus untuk SSH UDP
-    mkdir -p /etc/geovpn/
-
-    # Unduh file-file yang diperlukan
-    wget -q -O /etc/geovpn/udp "https://raw.githubusercontent.com/jaka2m/project/refs/heads/main/ssh/udp"
-    wget -q -O /etc/systemd/system/udp.service "https://raw.githubusercontent.com/jaka2m/project/refs/heads/main/ssh/udp.service"
-    wget -q -O /etc/geovpn/config.json "https://raw.githubusercontent.com/jaka2m/project/refs/heads/main/ssh/config.json"
-
-    # Periksa apakah semua file berhasil diunduh
-    if [ ! -f /etc/geovpn/udp ] || \
-       [ ! -f /etc/systemd/system/udp.service ] || \
-       [ ! -f /etc/geovpn/config.json ]; then
-        print_error "Gagal mengunduh salah satu atau lebih file SSH UDP. Mohon periksa koneksi atau URL repositori."
-        return 1 # Keluar dari fungsi jika ada kegagalan unduh
-    else
-        print_success "Semua file SSH UDP berhasil diunduh."
-    fi
-
-    print_install "Mengatur izin eksekusi untuk file SSH UDP"
-    # Beri izin eksekusi
-    chmod +x /etc/geovpn/udp
-    chmod +x /etc/systemd/system/udp.service
-    chmod +x /etc/geovpn/config.json
-
-    # Periksa apakah izin berhasil diatur
-    if [ $? -eq 0 ]; then
-        print_success "Izin eksekusi berhasil diatur."
-    else
-        print_error "Gagal mengatur izin eksekusi."
-        return 1
-    fi
-
-    print_install "Mengaktifkan dan memulai layanan SSH UDP"
-    # Reload daemon systemd, aktifkan, mulai, dan restart layanan
-    systemctl daemon-reload &>/dev/null
-    systemctl enable udp &>/dev/null
-    systemctl start udp &>/dev/null
-    systemctl restart udp &>/dev/null
-
-    # Periksa status layanan
-    if systemctl is-active --quiet udp; then
-        print_success "Layanan SSH UDP berhasil diaktifkan dan berjalan."
-    else
-        print_error "Gagal mengaktifkan atau memulai layanan SSH UDP."
-        return 1
-    fi
-
-    echo ""
-    echo -e "${YELLOW}----------------------------------------------------------${NC}"
-    echo -e "           Pengaturan SSH UDP Selesai"
-    echo -e "${YELLOW}----------------------------------------------------------${NC}"
-    echo ""
-    # Tampilkan status layanan untuk konfirmasi
-    print_install "Status Layanan SSH UDP:"
-    systemctl status udp --no-pager
-    echo ""
+clear
+print_install "MEMASANG SSH UDP"
+mkdir -p /etc/geovpn/
+wget -q -O /etc/geovpn/udp "https://raw.githubusercontent.com/jaka2m/project/refs/heads/main/ssh/udp"
+wget -q -O /etc/systemd/system/udp.service "https://raw.githubusercontent.com/jaka2m/project/refs/heads/main/ssh/udp.service"
+wget -q -O /etc/geovpn/config.json "https://raw.githubusercontent.com/jaka2m/project/refs/heads/main/ssh/config.json"
+chmod +x /etc/geovpn/udp
+chmod +x /etc/systemd/system/udp.service
+chmod +x /etc/geovpn/config.json
+systemctl enable udp
+systemctl start udp
+systemctl restart udp
+systemctl status udp --no-pager
 }
 
 #function ssh_slow(){
@@ -1185,69 +963,21 @@ print_success "OpenVPN"
 
 function ins_backup(){
 clear
-    echo -e "${YELLOW}----------------------------------------------------------${NC}"
-    echo -e "                Memulai Pengaturan Backup Server"
-    echo -e "${YELLOW}----------------------------------------------------------${NC}"
-    echo ""
-
-    # Instalasi Rclone
-    print_install "Memasang Rclone untuk Manajemen Cloud Storage"
-    apt install rclone -y
-    if [ $? -eq 0 ]; then
-        printf "q\n" | rclone config # Menginisialisasi konfigurasi Rclone secara non-interaktif
-        print_success "Rclone berhasil dipasang."
-    else
-        print_error "Gagal memasang Rclone."
-        return 1 # Keluar dari fungsi jika Rclone gagal dipasang
-    fi
-
-    # Mengunduh konfigurasi Rclone
-    print_install "Mengunduh file konfigurasi Rclone"
-    mkdir -p /root/.config/rclone/ # Pastikan direktori ada
-    wget -O /root/.config/rclone/rclone.conf "${REPO}backup/rclone.conf"
-    if [ $? -eq 0 ]; then
-        print_success "File konfigurasi Rclone berhasil diunduh."
-    else
-        print_error "Gagal mengunduh file konfigurasi Rclone."
-        # return 1 # Aktifkan jika ini error fatal
-    fi
-
-    # Instalasi Wondershaper
-    print_install "Memasang Wondershaper untuk Manajemen Bandwidth"
-    # Clone repositori Wondershaper
-    git clone https://github.com/magnific0/wondershaper.git /tmp/wondershaper_temp
-    if [ $? -eq 0 ]; then
-        cd /tmp/wondershaper_temp
-        sudo make install
-        if [ $? -eq 0 ]; then
-            cd /root || { print_error "Gagal kembali ke direktori /root."; return 1; }
-            rm -rf /tmp/wondershaper_temp
-            echo "" > /home/limit # Membuat/mengosongkan file limit
-            print_success "Wondershaper berhasil dipasang."
-        else
-            print_error "Gagal menginstal Wondershaper (make install gagal)."
-            cd /root || { print_error "Gagal kembali ke direktori /root."; return 1; }
-            rm -rf /tmp/wondershaper_temp
-            # return 1 # Aktifkan jika ini error fatal
-        fi
-    else
-        print_error "Gagal mengunduh Wondershaper dari GitHub (git clone gagal)."
-        # return 1 # Aktifkan jika ini error fatal
-    fi
-
-    # Instalasi msmtp-mta dan dependensi untuk pengiriman email
-    print_install "Memasang MSMTP dan Dependensi untuk Notifikasi Email"
-    apt install msmtp-mta ca-certificates bsd-mailx -y
-    if [ $? -eq 0 ]; then
-        print_success "MSMTP dan dependensi berhasil dipasang."
-    else
-        print_error "Gagal memasang MSMTP dan dependensi."
-        # return 1 # Aktifkan jika ini error fatal
-    fi
-
-    # Membuat konfigurasi msmtp
-    print_install "Mengkonfigurasi MSMTP"
-    cat <<EOF >/etc/msmtprc
+print_install "Memasang Backup Server"
+#BackupOption
+apt install rclone -y
+printf "q\n" | rclone config
+wget -O /root/.config/rclone/rclone.conf "${REPO}backup/rclone.conf"
+#Install Wondershaper
+cd /bin
+git clone  https://github.com/magnific0/wondershaper.git
+cd wondershaper
+sudo make install
+cd
+rm -rf wondershaper
+echo > /home/limit
+apt install msmtp-mta ca-certificates bsd-mailx -y
+cat<<EOF>>/etc/msmtprc
 defaults
 tls on
 tls_starttls on
@@ -1259,116 +989,38 @@ port 587
 auth on
 user ambebalong@gmail.com
 from ambebalong@gmail.com
-password ynezhkhchxawicfo
+password ynezhkhchxawicfo 
 logfile ~/.msmtp.log
 EOF
-    if [ $? -eq 0 ]; then
-        chown -R www-data:www-data /etc/msmtprc
-        chmod 600 /etc/msmtprc # Izin yang lebih aman untuk file konfigurasi
-        print_success "Konfigurasi MSMTP berhasil dibuat."
-    else
-        print_error "Gagal membuat konfigurasi MSMTP."
-        # return 1 # Aktifkan jika ini error fatal
-    fi
-
-    # Mengunduh dan menjalankan skrip IP Server (jika diperlukan)
-    print_install "Mengunduh dan menjalankan skrip IP Server"
-    wget -q -O /etc/ipserver "${REPO}ssh/ipserver"
-    if [ $? -eq 0 ]; then
-        bash /etc/ipserver
-        print_success "Skrip IP Server berhasil diunduh dan dijalankan."
-    else
-        print_error "Gagal mengunduh skrip IP Server."
-        # return 1 # Aktifkan jika ini error fatal
-    fi
-
-    echo ""
-    echo -e "${YELLOW}----------------------------------------------------------${NC}"
-    echo -e "              Pengaturan Backup Server Selesai"
-    echo -e "${YELLOW}----------------------------------------------------------${NC}"
-    echo ""
+chown -R www-data:www-data /etc/msmtprc
+wget -q -O /etc/ipserver "${REPO}ssh/ipserver" && bash /etc/ipserver
+print_success "Backup Server"
 }
 
 clear
 function ins_swab(){
 clear
-    echo -e "${YELLOW}----------------------------------------------------------${NC}"
-    echo -e "          Memulai Pengaturan Swap dan Optimasi Sistem"
-    echo -e "${YELLOW}----------------------------------------------------------${NC}"
-    echo ""
+print_install "Memasang Swap 1 G"
+gotop_latest="$(curl -s https://api.github.com/repos/xxxserxxx/gotop/releases | grep tag_name | sed -E 's/.*"v(.*)".*/\1/' | head -n 1)"
+    gotop_link="https://github.com/xxxserxxx/gotop/releases/download/v$gotop_latest/gotop_v"$gotop_latest"_linux_amd64.deb"
+    curl -sL "$gotop_link" -o /tmp/gotop.deb
+    dpkg -i /tmp/gotop.deb >/dev/null 2>&1
+    
+        # > Buat swap sebesar 1G
+    dd if=/dev/zero of=/swapfile bs=1024 count=1048576
+    mkswap /swapfile
+    chown root:root /swapfile
+    chmod 0600 /swapfile >/dev/null 2>&1
+    swapon /swapfile >/dev/null 2>&1
+    sed -i '$ i\/swapfile      swap swap   defaults    0 0' /etc/fstab
 
-    # Instalasi Gotop (Monitoring Tool)
-    print_install "Memasang Gotop (Alat Monitoring Sistem)"
-    gotop_latest=$(curl -s https://api.github.com/repos/xxxserxxx/gotop/releases | grep tag_name | sed -E 's/.*"v(.*)".*/\1/' | head -n 1)
-    if [[ -z "$gotop_latest" ]]; then
-        print_error "Gagal menemukan versi Gotop terbaru. Melewatkan instalasi Gotop."
-    else
-        gotop_link="https://github.com/xxxserxxx/gotop/releases/download/v${gotop_latest}/gotop_v${gotop_latest}_linux_amd64.deb"
-        curl -sL "$gotop_link" -o /tmp/gotop.deb
-        if [ $? -eq 0 ]; then
-            dpkg -i /tmp/gotop.deb >/dev/null 2>&1
-            if [ $? -eq 0 ]; then
-                print_success "Gotop versi v${gotop_latest} berhasil dipasang."
-            else
-                print_error "Gagal memasang paket Gotop (dpkg error). Mungkin ada dependensi yang hilang."
-            fi
-            rm -f /tmp/gotop.deb
-        else
-            print_error "Gagal mengunduh Gotop dari GitHub."
-        fi
-    fi
-
-    # Membuat Swap File sebesar 1GB
-    print_install "Membuat dan Mengaktifkan Swap File sebesar 1GB"
-    dd if=/dev/zero of=/swapfile bs=1M count=1024
-    if [ $? -eq 0 ]; then
-        mkswap /swapfile
-        chown root:root /swapfile
-        chmod 0600 /swapfile >/dev/null 2>&1
-        swapon /swapfile >/dev/null 2>&1
-        sed -i '$ i\/swapfile\t\tswap\tswap\tdefaults\t0\t0' /etc/fstab
-        print_success "Swap file 1GB berhasil dibuat dan diaktifkan."
-    else
-        print_error "Gagal membuat swap file 1GB. Periksa ruang disk atau izin."
-        # return 1 # Aktifkan jika ini adalah error fatal
-    fi
-
-    # Sinkronisasi Jam Menggunakan NTP
-    print_install "Melakukan Sinkronisasi Jam Sistem via NTP"
-    if command -v chronyd &>/dev/null; then
-        chronyd -q 'server 0.id.pool.ntp.org iburst'
-        if [ $? -eq 0 ]; then
-            chronyc sourcestats -v
-            chronyc tracking -v
-            print_success "Jam sistem berhasil disinkronkan dengan NTP."
-        else
-            print_error "Gagal melakukan sinkronisasi jam dengan Chrony."
-        fi
-    elif command -v ntpdate &>/dev/null; then
-        ntpdate -u 0.id.pool.ntp.org
-        if [ $? -eq 0 ]; then
-            print_success "Jam sistem berhasil disinkronkan dengan NTP."
-        else
-            print_error "Gagal melakukan sinkronisasi jam dengan ntpdate."
-        fi
-    else
-        print_error "Chrony atau ntpdate tidak ditemukan. Sinkronisasi jam dilewati."
-    fi
-
-    # Menjalankan Skrip BBR (Optimasi Jaringan)
-    print_install "Menjalankan Skrip Optimasi Jaringan (BBR)"
-    wget "${REPO}bbr.sh" && chmod +x bbr.sh && ./bbr.sh
-    if [ $? -eq 0 ]; then
-        print_success "Skrip BBR berhasil dijalankan."
-    else
-        print_error "Gagal menjalankan skrip BBR. Periksa log BBR untuk detail lebih lanjut."
-        # return 1 # Aktifkan jika ini adalah error fatal
-    fi
-
-    echo ""
-    print_success "Pengaturan Swap dan Optimasi Sistem Selesai!"
-    echo -e "${YELLOW}----------------------------------------------------------${NC}"
-    echo ""
+    # > Singkronisasi jam
+    chronyd -q 'server 0.id.pool.ntp.org iburst'
+    chronyc sourcestats -v
+    chronyc tracking -v
+    
+    wget ${REPO}bbr.sh &&  chmod +x bbr.sh && ./bbr.sh
+print_success "Swap 1 G"
 }
 
 function ins_Fail2ban(){
@@ -1481,90 +1133,37 @@ function menu(){
 
 # Membaut Default Menu 
 function profile(){
+echo -e "[ ${green}INFO${NC} ] reinstall --fix-missing install -y bzip2 gzip coreutils wget screen rsyslog iftop htop net-tools zip unzip wget net-tools curl nano sed screen gnupg gnupg1 bc apt-transport-https build-essential dirmngr libxml-parser-perl neofetch git lsof"
+apt-get --reinstall --fix-missing install -y bzip2 gzip coreutils wget screen rsyslog iftop htop net-tools zip unzip wget net-tools curl nano sed screen gnupg gnupg1 bc apt-transport-https build-essential dirmngr libxml-parser-perl neofetch git lsof >/dev/null 2>&1
+echo "clear" >> .profile
+echo "figlet -f slant GEO PROJECT | lolcat" >> .profile
+echo "sleep 0.5" >> .profile
+echo "clear" >> .profile
+echo "menu " >> .profile
+echo "echo -e \" - Script Mod By Geo Project\" | lolcat" >> .profile
+echo "echo -e \"\x1b[96m - Silahkan Ketik\x1b[m \x1b[92mMENU\x1b[m \x1b[96mUntuk Melihat daftar Perintah\x1b[m\"" >> .profile
 
-    clear
-    echo -e "${YELLOW}----------------------------------------------------------${NC}"
-    echo -e "          Memulai Konfigurasi Profil dan Dependensi"
-    echo -e "${YELLOW}----------------------------------------------------------${NC}"
-    echo ""
-
-    # Reinstall/Install Dependensi Penting
-    print_install "Memasang ulang/memasang dependensi sistem"
-    echo -e "[ ${green}INFO${NC} ] Memasang bzip2, gzip, coreutils, wget, screen, rsyslog, iftop, htop, net-tools, zip, unzip, curl, nano, sed, gnupg, bc, apt-transport-https, build-essential, dirmngr, libxml-parser-perl, neofetch, git, lsof..."
-    apt-get --reinstall --fix-missing install -y bzip2 gzip coreutils wget screen rsyslog iftop htop net-tools zip unzip wget net-tools curl nano sed screen gnupg gnupg1 bc apt-transport-https build-essential dirmngr libxml-parser-perl neofetch git lsof >/dev/null 2>&1
-    if [ $? -eq 0 ]; then
-        print_success "Dependensi berhasil dipasang/diperbaiki."
-    else
-        print_error "Gagal memasang/memperbaiki dependensi. Mungkin ada masalah koneksi atau repositori."
-    fi
-
-    # Konfigurasi .profile untuk pesan selamat datang dan menu
-    print_install "Mengkonfigurasi pesan sambutan di .profile"
-    {
-        echo "clear"
-        echo "figlet -f slant GEO PROJECT | lolcat"
-        echo "sleep 0.5"
-        echo "clear"
-        echo "menu"
-        echo "echo -e \" - Script Mod By Geo Project\" | lolcat"
-        echo "echo -e \"\\x1b[96m - Silakan Ketik\\x1b[m \\x1b[92mMENU\\x1b[m \\x1b[96mUntuk Melihat Daftar Perintah\\x1b[m\""
-    } >> /root/.profile
+cat >/etc/cron.d/xp_all <<-END
+		SHELL=/bin/sh
+		PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+		2 0 * * * root /usr/local/sbin/xp
+	END
     chmod 644 /root/.profile
-    if [ $? -eq 0 ]; then
-        print_success "Profil login berhasil dikonfigurasi."
-    else
-        print_error "Gagal mengkonfigurasi profil login."
-    fi
-
-    # Menjadwalkan Cron Job untuk kadaluarsa (xp_all)
-    print_install "Menjadwalkan Cron Job untuk manajemen kadaluarsa (xp)"
-    cat >/etc/cron.d/xp_all <<-END
-SHELL=/bin/sh
-PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-2 0 * * * root /usr/local/sbin/xp
-END
-    if [ $? -eq 0 ]; then
-        print_success "Cron Job 'xp_all' berhasil dibuat."
-    else
-        print_error "Gagal membuat Cron Job 'xp_all'."
-    fi
-
-    # Menjadwalkan Cron Job untuk Daily Reboot
-    print_install "Menjadwalkan Cron Job untuk reboot harian"
+	
     cat >/etc/cron.d/daily_reboot <<-END
-SHELL=/bin/sh
-PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-0 5 * * * root /sbin/reboot
-END
-    if [ $? -eq 0 ]; then
-        print_success "Cron Job 'daily_reboot' berhasil dibuat."
-    else
-        print_error "Gagal membuat Cron Job 'daily_reboot'."
-    fi
+		SHELL=/bin/sh
+		PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+		0 5 * * * root /sbin/reboot
+	END
 
-    # Menjadwalkan Cron Job untuk membersihkan log Nginx dan Xray
-    print_install "Menjadwalkan Cron Job untuk membersihkan log"
     echo "*/1 * * * * root echo -n > /var/log/nginx/access.log" >/etc/cron.d/log.nginx
     echo "*/1 * * * * root echo -n > /var/log/xray/access.log" >>/etc/cron.d/log.xray
     service cron restart
-    if [ $? -eq 0 ]; then
-        print_success "Cron Jobs pembersihan log berhasil dibuat dan Cron direstart."
-    else
-        print_error "Gagal membuat Cron Jobs pembersihan log atau restart Cron."
-    fi
+    cat >/home/daily_reboot <<-END
+		5
+	END
 
-    # Menyiapkan file untuk Auto Reboot Time
-    print_install "Menyiapkan file konfigurasi waktu auto-reboot"
-    echo "5" > /home/daily_reboot # Menetapkan waktu reboot default ke jam 5 pagi
-    if [ $? -eq 0 ]; then
-        print_success "File /home/daily_reboot berhasil dibuat."
-    else
-        print_error "Gagal membuat file /home/daily_reboot."
-    fi
-
-    # Mengkonfigurasi rc-local.service
-    print_install "Mengkonfigurasi layanan rc-local.service"
-    cat >/etc/systemd/system/rc-local.service <<EOF
+cat >/etc/systemd/system/rc-local.service <<EOF
 [Unit]
 Description=/etc/rc.local
 ConditionPathExists=/etc/rc.local
@@ -1578,25 +1177,10 @@ SysVStartPriority=99
 [Install]
 WantedBy=multi-user.target
 EOF
-    if [ $? -eq 0 ]; then
-        print_success "File rc-local.service berhasil dibuat."
-    else
-        print_error "Gagal membuat file rc-local.service."
-    fi
 
-    # Menambahkan shell nologin
-    print_install "Menambahkan shell nologin ke /etc/shells"
-    echo "/bin/false" >>/etc/shells
-    echo "/usr/sbin/nologin" >>/etc/shells
-    if [ $? -eq 0 ]; then
-        print_success "Shell nologin berhasil ditambahkan."
-    else
-        print_error "Gagal menambahkan shell nologin."
-    fi
-
-    # Mengkonfigurasi /etc/rc.local dengan aturan iptables
-    print_install "Mengkonfigurasi /etc/rc.local dengan aturan iptables"
-    cat >/etc/rc.local <<EOF
+echo "/bin/false" >>/etc/shells
+echo "/usr/sbin/nologin" >>/etc/shells
+cat >/etc/rc.local <<EOF
 #!/bin/sh -e
 # rc.local
 # By default this script does nothing.
@@ -1605,70 +1189,34 @@ iptables -t nat -I PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 5300
 systemctl restart netfilter-persistent
 exit 0
 EOF
-    chmod +x /etc/rc.local
-    if [ $? -eq 0 ]; then
-        print_success "File /etc/rc.local berhasil dikonfigurasi dan diberi izin eksekusi."
-    else
-        print_error "Gagal mengkonfigurasi /etc/rc.local."
-    fi
 
-    # Menentukan Waktu Reboot (Hanya logika, tidak ada aksi)
-    # Ini hanya pembacaan variabel, tidak ada konfigurasi yang terjadi di sini.
-    # Kode ini mungkin perlu direvisi jika tujuannya adalah untuk mengatur waktu reboot secara dinamis.
+    chmod +x /etc/rc.local
+    
     AUTOREB=$(cat /home/daily_reboot)
     SETT=11
-    TIME_DATE=""
-    if [ "$AUTOREB" -gt "$SETT" ]; then
+    if [ $AUTOREB -gt $SETT ]; then
         TIME_DATE="PM"
     else
         TIME_DATE="AM"
     fi
-
-    echo ""
-    print_success "Konfigurasi Profil dan Dependensi Selesai."
-    echo -e "${YELLOW}----------------------------------------------------------${NC}"
-    echo ""
+print_success "Menu Packet"
 }
 
-# ---
-## Mengaktifkan Layanan Setelah Instalasi
----
-function enable_services() {
-    clear
-    echo -e "${YELLOW}----------------------------------------------------------${NC}"
-    echo -e "                Mengaktifkan Layanan Sistem"
-    echo -e "${YELLOW}----------------------------------------------------------${NC}"
-    echo ""
-
-    print_install "Memuat ulang daemon systemd"
+# Restart layanan after install
+function enable_services(){
+clear
+print_install "Enable Service"
     systemctl daemon-reload
-    print_success "Daemon systemd berhasil dimuat ulang."
-
-    print_install "Mengaktifkan dan memulai layanan penting"
-    # Mengaktifkan dan memulai layanan satu per satu dengan pengecekan status
-    services=(
-        "netfilter-persistent"
-        "rc-local"
-        "cron"
-        "nginx"
-        "xray"
-        "haproxy"
-    )
-
-    for service_name in "${services[@]}"; do
-        systemctl enable --now "$service_name" &>/dev/null
-        systemctl restart "$service_name" &>/dev/null # Restart juga untuk memastikan
-        if systemctl is-active --quiet "$service_name"; then
-            print_success "Layanan $service_name berhasil diaktifkan dan dimulai."
-        else
-            print_error "Gagal mengaktifkan atau memulai layanan $service_name. Mohon periksa log."
-        fi
-    done
-
-    echo ""
-    print_success "Semua layanan penting berhasil diaktifkan."
-    echo -e "${YELLOW}----------------------------------------------------------${NC}"
-    echo ""
+    systemctl start netfilter-persistent
+    systemctl enable --now rc-local
+    systemctl enable --now cron
+    systemctl enable --now netfilter-persistent
+    systemctl restart nginx
+    systemctl restart xray
+    systemctl restart cron
+    systemctl restart haproxy
+    print_success "Enable Service"
+    clear
 }
 
 # Fingsi Install Script
@@ -1710,8 +1258,8 @@ rm -rf /root/*.sh
 rm -rf /root/LICENSE
 rm -rf /root/README.md
 rm -rf /root/domain
+clear
 #sudo hostnamectl set-hostname $user
-secs_to_human "$(($(date +%s) - ${start}))"
 echo ""
 samawa
 echo " "
@@ -1755,7 +1303,7 @@ echo -e " ${green}│${NC}   - Full Orders For Various Services                $
 echo -e " ${green}└─────────────────────────────────────────────────────┘${NC}"
 echo ""
 echo ""
-echo "" | tee -a log-install.txt
+secs_to_human "$(($(date +%s) - ${start}))"secs_to_human "$(($(date +%s) - ${start}))"secs_to_human "$(($(date +%s) - ${start}))"secs_to_human "$(($(date +%s) - ${start}))"secs_to_human "$(($(date +%s) - ${start}))"secs_to_human "$(($(date +%s) - ${start}))"secs_to_human "$(($(date +%s) - ${start}))"
 echo -e ""
 #sudo hostnamectl set-hostname $username
 echo -e "${green} Script Successfull Installed"
