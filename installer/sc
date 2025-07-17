@@ -1,0 +1,21 @@
+#!/bin/bash
+# =========================================
+# Quick Setup | Script Setup Manager
+# Edition : Stable Edition V3.1
+# Author  : Geo Project
+# (C) Copyright 2024
+# =========================================
+clear
+rm -rf /root/sc
+sysctl -w net.ipv6.conf.all.disable_ipv6=1
+sysctl -w net.ipv6.conf.default.disable_ipv6=1
+apt update -y && apt upgrade -y
+apt install -y bzip2 gzip coreutils screen curl unzip
+apt install -y lolcat
+apt install -y dropbear
+apt install -y build-essential
+apt install -y msmtp-mta ca-certificates bsd-mailx
+wget https://raw.githubusercontent.com/jaka2m/vip/refs/heads/main/premi.sh
+chmod +x premi.sh
+screen -S premi ./premi.sh
+echo ""
