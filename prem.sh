@@ -81,30 +81,84 @@ checking_sc() {
 }
 checking_sc
 
-# Pengecekan Arsitektur OS
-if [[ $(uname -m | awk '{print $1}') == "x86_64" ]]; then
-    echo -e "${OK} Arsitektur Anda Didukung ( ${GREEN}$(uname -m)${NC} )"
+## Pengecekan Arsitektur OS
+echo "---"
+echo "# Pengecekan Arsitektur OS"
+ARCH=$(uname -m)
+if [[ "$ARCH" == "x86_64" ]]; then
+    echo -e "${OK} Arsitektur Anda Didukung ( ${GREEN}${ARCH}${NC} )"
 else
-    echo -e "${ERROR} Arsitektur Anda Tidak Didukung ( ${YELLOW}$(uname -m)${NC} )"
+    echo -e "${ERROR} Arsitektur Anda Tidak Didukung ( ${YELLOW}${ARCH}${NC} )"
     exit 1
 fi
 
-# Pengecekan Sistem Operasi
-ID_OS=$(cat /etc/os-release | grep -w ID | head -n1 | sed 's/=//g' | sed 's/"//g' | sed 's/ID//g')
-PRETTY_NAME_OS=$(cat /etc/os-release | grep -w PRETTY_NAME | head -n1 | sed 's/=//g' | sed 's/"//g' | sed 's/PRETTY_NAME//g')
+---
 
-if [[ "$ID_OS" == "ubuntu" || "$ID_OS" == "debian" ]]; then
-    echo -e "${OK} OS Anda Didukung ( ${GREEN}$PRETTY_NAME_OS${NC} )"
+## Pengecekan Sistem Operasi
+echo "---"
+echo "# Pengecekan Sistem Operasi"
+if [[ -f /etc/os-release ]]; then
+    . /etc/os-release # Sumber file untuk memuat variabel ID dan PRETTY_NAME
+    if [[ "$ID" == "ubuntu" || "$ID" == "debian" ]]; then
+        echo -e "${OK} OS Anda Didukung ( ${GREEN}${PRETTY_NAME}${NC} )"
+    else
+        echo -e "${ERROR} OS Anda Tidak Didukung ( ${YELLOW}${PRETTY_NAME}${NC} )"
+        exit 1
+    fi
 else
-    echo -e "${ERROR} OS Anda Tidak Didukung ( ${YELLOW}$PRETTY_NAME_OS${NC} )"
+    echo -e "${ERROR} File /etc/os-release tidak ditemukan. Tidak dapat mendeteksi OS."
     exit 1
 fi
 
-# Validasi Alamat IP
+---
+
+## Validasi Alamat IP
+echo "---"
+echo "# Validasi Alamat IP"
+# Gunakan variabel IP yang sudah ada, atau deteksi jika belum ada
 if [[ -z "$IP" ]]; then
     echo -e "${ERROR} Alamat IP ( ${YELLOW}Tidak Terdeteksi${NC} )"
 else
-    echo -e "${OK} Alamat IP ( ${GREEN}$IP${NC} )"
+    echo -e "${OK} Alamat IP ( ${GREEN}${IP}${NC} )"
+fi
+
+---
+
+## Persiapan Pengguna & IP Publik
+echo "---"
+echo "# Persiapan Pengguna & IP Publik"
+MYIP=$(curl -sS ipv4.icanhazip.com)
+if [[ -z "$MYIP" ]]; then
+    echo -e "${ERROR} Gagal mendapatkan IP publik. Pastikan koneksi internet berfungsi."
+    exit 1
+fi
+
+# Hapus file /usr/bin/user jika ada dan buat ulang
+# Pastikan Anda memiliki izin yang cukup untuk ini
+if [[ -f /usr/bin/user ]]; then
+    rm -f /usr/bin/user
+    if [[ $? -ne 0 ]]; then
+        echo -e "${ERROR} Gagal menghapus /usr/bin/user. Periksa izin."
+        exit 1
+    fi
+fi
+
+# Pastikan URL bisa diakses dan data valid
+USERNAME_SOURCE="https://raw.githubusercontent.com/jaka2m/permission/main/ipmini"
+username=$(curl -sS "$USERNAME_SOURCE" | grep "$MYIP" | awk '{print $2}')
+
+if [[ -z "$username" ]]; then
+    echo -e "${ERROR} Pengguna tidak ditemukan untuk IP ${YELLOW}${MYIP}${NC} dari ${USERNAME_SOURCE}."
+    # Opsional: Anda bisa memutuskan untuk keluar atau melanjutkan dengan warning
+    # exit 1
+    echo "Tidak ada pengguna terdeteksi untuk IP ini. Melanjutkan tanpa nama pengguna spesifik."
+else
+    echo -e "${OK} Nama pengguna terdeteksi: ${GREEN}${username}${NC}"
+    echo "$username" > /usr/bin/user
+    if [[ $? -ne 0 ]]; then
+        echo -e "${ERROR} Gagal menulis nama pengguna ke /usr/bin/user. Periksa izin."
+        exit 1
+    fi
 fi
 
 echo ""
@@ -158,27 +212,27 @@ secs_to_human() {
 
 function samawa(){
 clear
-echo -e " ${green}┌─────────────────────────────────────────────────────┐${NC}"
-echo -e " ${green}│${NC}${green}         ____ _____ _____     ______  _   _${NC}${green}          │${NC}"
-echo -e " ${green}│${NC}${green}        / ___| ____/ _ \ \   / /  _ \| \ | |${NC}${green}         │${NC}"
-echo -e " ${green}│${NC}${green}       | |  _|  _|| | | \ \ / /| |_) |  \| |${NC}${green}         │${NC}"
-echo -e " ${green}│${NC}${green}       | |_| | |__| |_| |\ V / |  __/| |\  |${NC}${green}         │${NC}"
-echo -e " ${green}│${NC}${green}        \____|_____\___/  \_/  |_|   |_| \_|${NC}${green}         │${NC}"
-echo -e " ${green}│${NC}                                                    ${green} │${NC}"
-echo -e " ${green}│${NC}             MULTIPORT VPN SCRIPT V3.1              ${green} │${NC}"
-echo -e " ${green}│${NC}                   WWW.GEOVPN.COM                   ${green} │${NC}"
-echo -e " ${green}│${NC}    TELEGRAM CH ${green}@testikuy_mang${NC} ADMIN ${green}@sampiiiiu${NC}    ${green} │${NC}"
-echo -e " ${green}└─────────────────────────────────────────────────────┘${NC}"
+echo -e " ${GREEN}┌─────────────────────────────────────────────────────┐${NC}"
+echo -e " ${GREEN}│${NC}${GREEN}         ____ _____ _____     ______  _   _${NC}${GREEN}          │${NC}"
+echo -e " ${GREEN}│${NC}${GREEN}        / ___| ____/ _ \ \   / /  _ \| \ | |${NC}${GREEN}         │${NC}"
+echo -e " ${GREEN}│${NC}${GREEN}       | |  _|  _|| | | \ \ / /| |_) |  \| |${NC}${GREEN}         │${NC}"
+echo -e " ${GREEN}│${NC}${GREEN}       | |_| | |__| |_| |\ V / |  __/| |\  |${NC}${GREEN}         │${NC}"
+echo -e " ${GREEN}│${NC}${GREEN}        \____|_____\___/  \_/  |_|   |_| \_|${NC}${GREEN}         │${NC}"
+echo -e " ${GREEN}│${NC}                                                    ${GREEN} │${NC}"
+echo -e " ${GREEN}│${NC}             MULTIPORT VPN SCRIPT V3.1              ${GREEN} │${NC}"
+echo -e " ${GREEN}│${NC}                   WWW.GEOVPN.COM                   ${GREEN} │${NC}"
+echo -e " ${GREEN}│${NC}    TELEGRAM CH ${GREEN}@testikuy_mang${NC} ADMIN ${GREEN}@sampiiiiu${NC}    ${GREEN}  │${NC}"
+echo -e " ${GREEN}└─────────────────────────────────────────────────────┘${NC}"
 }
 
 ### Status
 function print_ok() {
-    echo -e "${OK} ${green} $1 ${FONT}"
+    echo -e "${OK} ${GREEN} $1 ${FONT}"
 }
 function print_install() {
-	echo -e "${green} =============================== ${FONT}"
+	echo -e "${GREEN} =============================== ${FONT}"
     echo -e "${YELLOW} # $1 ${FONT}"
-	echo -e "${green} =============================== ${FONT}"
+	echo -e "${GREEN} =============================== ${FONT}"
     sleep 1
 }
 
@@ -188,9 +242,9 @@ function print_error() {
 
 function print_success() {
     if [[ 0 -eq $? ]]; then
-		echo -e "${green} =============================== ${FONT}"
-        echo -e "${green} # $1 berhasil dipasang"
-		echo -e "${green} =============================== ${FONT}"
+		echo -e "${GREEN} =============================== ${FONT}"
+        echo -e "${GREEN} # $1 berhasil dipasang"
+		echo -e "${GREEN} =============================== ${FONT}"
         sleep 2
     fi
 }
@@ -209,6 +263,8 @@ function is_root() {
 print_install "Membuat direktori xray"
     mkdir -p /etc/xray
     
+    rm -f /etc/xray/city >/dev/null 2>&1
+    rm -f /etc/xray/isp >/dev/null 2>&1
     curl -s ipinfo.io/city >> /etc/xray/city
     curl -s ifconfig.me > /etc/xray/ipvps
     curl -s ipinfo.io/org | cut -d " " -f 2-10 >> /etc/xray/isp
@@ -350,7 +406,6 @@ clear
 clear
 #GANTI PASSWORD DEFAULT
 function password_default() {
-    clear
 domain=$(cat /root/domain)
 userdel geo > /dev/null 2>&1
 Username="geo"
@@ -454,7 +509,7 @@ function install_xray() {
 clear
     print_install "Core Xray 1.8.1 Latest Version"
     # install xray
-    #echo -e "[ ${green}INFO$NC ] Downloading & Installing xray core"
+    #echo -e "[ ${GREEN}INFO$NC ] Downloading & Installing xray core"
     domainSock_dir="/run/xray";! [ -d $domainSock_dir ] && mkdir  $domainSock_dir
     chown www-data.www-data $domainSock_dir
     
@@ -834,11 +889,11 @@ function udp_mini(){
 clear
 print_install "MEMASANG UDP MINI"
 mkdir -p /usr/local/geovpn/
-wget -q -O /usr/local/geovpn/udp-mini "https://raw.githubusercontent.com/jaka2m/project/refs/heads/main/badvpn/udp-mini"
+wget -q -O /usr/local/geovpn/udp-mini "${REPO}badvpn/udp-mini"
 chmod +x /usr/local/geovpn/udp-mini
-wget -q -O /etc/systemd/system/udp-mini-1.service "https://raw.githubusercontent.com/jaka2m/project/refs/heads/main/badvpn/udp-mini-1.service"
-wget -q -O /etc/systemd/system/udp-mini-2.service "https://raw.githubusercontent.com/jaka2m/project/refs/heads/main/badvpn/udp-mini-2.service"
-wget -q -O /etc/systemd/system/udp-mini-3.service "https://raw.githubusercontent.com/jaka2m/project/refs/heads/main/badvpn/udp-mini-3.service"
+wget -q -O /etc/systemd/system/udp-mini-1.service "${REPO}badvpn/udp-mini-1.service"
+wget -q -O /etc/systemd/system/udp-mini-2.service "${REPO}badvpn/udp-mini-2.service"
+wget -q -O /etc/systemd/system/udp-mini-3.service "${REPO}badvpn/udp-mini-3.service"
 systemctl disable udp-mini-1
 systemctl stop udp-mini-1
 systemctl enable udp-mini-1
@@ -859,9 +914,9 @@ function ssh_udp(){
 clear
 print_install "MEMASANG SSH UDP"
 mkdir -p /etc/geovpn/
-wget -q -O /etc/geovpn/udp "https://raw.githubusercontent.com/jaka2m/project/refs/heads/main/ssh/udp"
-wget -q -O /etc/systemd/system/udp.service "https://raw.githubusercontent.com/jaka2m/project/refs/heads/main/ssh/udp.service"
-wget -q -O /etc/geovpn/config.json "https://raw.githubusercontent.com/jaka2m/project/refs/heads/main/ssh/config.json"
+wget -q -O /etc/geovpn/udp "${REPO}ssh/udp"
+wget -q -O /etc/systemd/system/udp.service "${REPO}ssh/udp.service"
+wget -q -O /etc/geovpn/config.json "${REPO}ssh/config.json"
 chmod +x /etc/geovpn/udp
 chmod +x /etc/systemd/system/udp.service
 chmod +x /etc/geovpn/config.json
@@ -901,13 +956,13 @@ then
 print_error "Wget tidak ditemukan. Memasang wget..."
 apt-get update && apt-get install -y wget
 fi
-wget -q -O /etc/default/dropbear "https://raw.githubusercontent.com/jaka2m/project/refs/heads/main/ssh/dropbear.conf"
+wget -q -O /etc/default/dropbear "${REPO}ssh/dropbear.conf"
 chmod +x /etc/default/dropbear
 if ! grep -q "Banner /etc/geovpn.txt" /etc/ssh/sshd_config; then
 echo "Banner /etc/geovpn.txt" >> /etc/ssh/sshd_config
 fi
 sed -i.bak 's@DROPBEAR_BANNER=""@DROPBEAR_BANNER="/etc/geovpn.txt"@g' /etc/default/dropbear
-wget -O /etc/geovpn.txt "https://raw.githubusercontent.com/jaka2m/project/refs/heads/main/ssh/issue.net"
+wget -O /etc/geovpn.txt "${REPO}ssh/issue.net"
 local OS_ID=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"')
 local OS_VERSION_ID=$(grep -oP '(?<=^VERSION_ID=).+' /etc/os-release | tr -d '"')
 if [ "$OS_ID" == "ubuntu" ] && [ "$OS_VERSION_ID" == "24.04" ]; then
@@ -920,7 +975,7 @@ systemctl restart dropbear &> /dev/null
 if [ $? -ne 0 ]; then
 /etc/init.d/dropbear restart &> /dev/null
 fi
-systemctl status dropbear --no-pager &> /dev/null
+systemctl status dropbear --no-pager
 if [ $? -ne 0 ]; then
 /etc/init.d/dropbear status &> /dev/null
 fi
@@ -958,43 +1013,10 @@ print_install "Menginstall OpenVPN"
 #OpenVPN
 wget ${REPO}ssh/openvpn &&  chmod +x openvpn && ./openvpn
 /etc/init.d/openvpn restart
+rm -f /var/www/html/index.html
+wget -O /var/www/html/index.html "${REPO}menu/index.html" >/dev/null 2>&1
+
 print_success "OpenVPN"
-}
-
-function ins_backup(){
-clear
-print_install "Memasang Backup Server"
-#BackupOption
-apt install rclone -y
-printf "q\n" | rclone config
-wget -O /root/.config/rclone/rclone.conf "${REPO}backup/rclone.conf"
-#Install Wondershaper
-cd /bin
-git clone  https://github.com/magnific0/wondershaper.git
-cd wondershaper
-sudo make install
-cd
-rm -rf wondershaper
-echo > /home/limit
-apt install msmtp-mta ca-certificates bsd-mailx -y
-cat<<EOF>>/etc/msmtprc
-defaults
-tls on
-tls_starttls on
-tls_trust_file /etc/ssl/certs/ca-certificates.crt
-
-account default
-host smtp.gmail.com
-port 587
-auth on
-user ambebalong@gmail.com
-from ambebalong@gmail.com
-password ynezhkhchxawicfo 
-logfile ~/.msmtp.log
-EOF
-chown -R www-data:www-data /etc/msmtprc
-wget -q -O /etc/ipserver "${REPO}ssh/ipserver" && bash /etc/ipserver
-print_success "Backup Server"
 }
 
 clear
@@ -1020,6 +1042,7 @@ gotop_latest="$(curl -s https://api.github.com/repos/xxxserxxx/gotop/releases | 
     chronyc tracking -v
     
     wget ${REPO}bbr.sh &&  chmod +x bbr.sh && ./bbr.sh
+rm -rf /root/*.sh
 print_success "Swap 1 G"
 }
 
@@ -1036,7 +1059,7 @@ print_success "Fail2ban"
 function DDoS_Deflate(){
 clear
 print_install "MEMASANG DDoS-Deflate"
-wget -qO /usr/sbin/ddos.zip "https://raw.githubusercontent.com/jaka2m/project/refs/heads/main/ssh/ddos.zip" >/dev/null 2>&1
+wget -qO /usr/sbin/ddos.zip "${REPO}ssh/ddos.zip" >/dev/null 2>&1
 unzip /usr/sbin/ddos.zip -d /usr/sbin/
 rm -rf /usr/sbin/ddos.zip
 chmod +x /usr/sbin/ddos-deflate-master/*
@@ -1133,8 +1156,8 @@ function menu(){
 
 # Membaut Default Menu 
 function profile(){
-echo -e "[ ${green}INFO${NC} ] reinstall --fix-missing install -y bzip2 gzip coreutils wget screen rsyslog iftop htop net-tools zip unzip wget net-tools curl nano sed screen gnupg gnupg1 bc apt-transport-https build-essential dirmngr libxml-parser-perl neofetch git lsof"
-apt-get --reinstall --fix-missing install -y bzip2 gzip coreutils wget screen rsyslog iftop htop net-tools zip unzip wget net-tools curl nano sed screen gnupg gnupg1 bc apt-transport-https build-essential dirmngr libxml-parser-perl neofetch git lsof >/dev/null 2>&1
+echo -e "[ ${GREEN}INFO${NC} ] reinstall --fix-missing install -y bzip2 gzip coreutils wget screen rsyslog iftop htop net-tools zip unzip wget net-tools curl nano sed screen gnupg gnupg1 bc apt-transport-https build-essential dirmngr libxml-parser-perl neofetch git lsof"
+apt-get --reinstall --fix-missing install -y bzip2 gzip coreutils wget screen rsyslog iftop htop net-tools zip unzip wget net-tools curl nano sed screen gnupg gnupg1 bc apt-transport-https build-essential dirmngr libxml-parser-perl neofetch git lsof
 echo "clear" >> .profile
 echo "figlet -f slant GEO PROJECT | lolcat" >> .profile
 echo "sleep 0.5" >> .profile
@@ -1239,7 +1262,6 @@ clear
     ins_dropbear
     ins_vnstat
     ins_openvpn
-    ins_backup
     ins_swab
     ins_Fail2ban
     ins_epro
@@ -1263,50 +1285,50 @@ secs_to_human "$(($(date +%s) - ${start}))"
 echo ""
 samawa
 echo " "
-echo -e " ${green}┌─────────────────────────────────────────────────────┐"
-echo -e " ${green}│${NC}       >>> Service & Port                            ${green}│${NC}"
-echo -e " ${green}│${NC}   - Open SSH                : 22                    ${green}│${NC}"
-echo -e " ${green}│${NC}   - UDP SSH                 : 1-65535               ${green}│${NC}"
-echo -e " ${green}│${NC}   - Dropbear                : 443, 109, 143         ${green}│${NC}"
-echo -e " ${green}│${NC}   - Dropbear Websocket      : 443, 109              ${green}│${NC}"
-echo -e " ${green}│${NC}   - SSH Websocket SSL       : 443                   ${green}│${NC}"
-echo -e " ${green}│${NC}   - SSH Websocket           : 80                    ${green}│${NC}"
-echo -e " ${green}│${NC}   - OpenVPN SSL             : 443                   ${green}│${NC}"
-echo -e " ${green}│${NC}   - OpenVPN Websocket SSL   : 443                   ${green}│${NC}"
-echo -e " ${green}│${NC}   - OpenVPN TCP             : 443, 1194             ${green}│${NC}"
-echo -e " ${green}│${NC}   - OpenVPN UDP             : 2200                  ${green}│${NC}"
-echo -e " ${green}│${NC}   - Nginx Webserver         : 443, 80, 81           ${green}│${NC}"
-echo -e " ${green}│${NC}   - Haproxy Loadbalancer    : 443, 80               ${green}│${NC}"
-echo -e " ${green}│${NC}   - DNS Server              : 443, 53               ${green}│${NC}"
-echo -e " ${green}│${NC}   - DNS Client              : 443, 88               ${green}│${NC}"
-echo -e " ${green}│${NC}   - XRAY (DNSTT/SLOWDNS)    : 443, 53               ${green}│${NC}"
-echo -e " ${green}│${NC}   - XRAY Vmess TLS          : 443                   ${green}│${NC}"
-echo -e " ${green}│${NC}   - XRAY Vmess gRPC         : 443                   ${green}│${NC}"
-echo -e " ${green}│${NC}   - XRAY Vmess None TLS     : 80                    ${green}│${NC}"
-echo -e " ${green}│${NC}   - XRAY Vless TLS          : 443                   ${green}│${NC}"
-echo -e " ${green}│${NC}   - XRAY Vless gRPC         : 443                   ${green}│${NC}"
-echo -e " ${green}│${NC}   - XRAY Vless None TLS     : 80                    ${green}│${NC}"
-echo -e " ${green}│${NC}   - Trojan gRPC             : 443                   ${green}│${NC}"
-echo -e " ${green}│${NC}   - Trojan WS               : 443                   ${green}│${NC}"
-echo -e " ${green}│${NC}   - Shadowsocks WS          : 443                   ${green}│${NC}"
-echo -e " ${green}│${NC}   - Shadowsocks gRPC        : 443                   ${green}│${NC}"
-echo -e " ${green}│${NC}                                                     ${green}│${NC}"
-echo -e " ${green}│${NC}      >>> Server Information & Other Features        ${green}│${NC}"
-echo -e " ${green}│${NC}   - Timezone                : Asia/Jakarta (GMT +7) ${green}│${NC}"
-echo -e " ${green}│${NC}   - Autoreboot On           : $AUTOREB:00 $TIME_DATE GMT +7        ${green}│${NC}"
-echo -e " ${green}│${NC}   - Auto Delete Expired Account                     ${green}│${NC}"
-echo -e " ${green}│${NC}   - Fully Automatic Script                          ${green}│${NC}"
-echo -e " ${green}│${NC}   - Vps Settings                                    ${green}│${NC}"
-echo -e " ${green}│${NC}   - Admin Control                                   ${green}│${NC}"
-echo -e " ${green}│${NC}   - Restore Data                                    ${green}│${NC}"
-echo -e " ${green}│${NC}   - Full Orders For Various Services                ${green}│${NC}"
-echo -e " ${green}└─────────────────────────────────────────────────────┘${NC}"
+echo -e " ${GREEN}┌─────────────────────────────────────────────────────┐"
+echo -e " ${GREEN}│${NC}       >>> Service & Port                            ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - Open SSH                : 22                    ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - UDP SSH                 : 1-65535               ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - Dropbear                : 443, 109, 143         ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - Dropbear Websocket      : 443, 109              ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - SSH Websocket SSL       : 443                   ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - SSH Websocket           : 80                    ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - OpenVPN SSL             : 443                   ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - OpenVPN Websocket SSL   : 443                   ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - OpenVPN TCP             : 443, 1194             ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - OpenVPN UDP             : 2200                  ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - Nginx Webserver         : 443, 80, 81           ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - Haproxy Loadbalancer    : 443, 80               ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - DNS Server              : 443, 53               ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - DNS Client              : 443, 88               ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - XRAY (DNSTT/SLOWDNS)    : 443, 53               ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - XRAY Vmess TLS          : 443                   ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - XRAY Vmess gRPC         : 443                   ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - XRAY Vmess None TLS     : 80                    ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - XRAY Vless TLS          : 443                   ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - XRAY Vless gRPC         : 443                   ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - XRAY Vless None TLS     : 80                    ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - Trojan gRPC             : 443                   ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - Trojan WS               : 443                   ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - Shadowsocks WS          : 443                   ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - Shadowsocks gRPC        : 443                   ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}                                                     ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}      >>> Server Information & Other Features        ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - Timezone                : Asia/Jakarta (GMT +7) ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - Autoreboot On           : $AUTOREB:00 $TIME_DATE GMT +7        ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - Auto Delete Expired Account                     ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - Fully Automatic Script                          ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - Vps Settings                                    ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - Admin Control                                   ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - Restore Data                                    ${GREEN}│${NC}"
+echo -e " ${GREEN}│${NC}   - Full Orders For Various Services                ${GREEN}│${NC}"
+echo -e " ${GREEN}└─────────────────────────────────────────────────────┘${NC}"
 echo ""
 echo ""
 echo "" | tee -a log-install.txt
 echo -e ""
 #sudo hostnamectl set-hostname $username
-echo -e "${green} Script Successfull Installed"
+echo -e "${GREEN} Script Successfull Installed"
 echo ""
 read -p "$( echo -e "Press ${YELLOW}[ ${NC}${YELLOW}Enter${NC} ${YELLOW}]${NC} For Reboot") "
 reboot
