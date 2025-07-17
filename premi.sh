@@ -725,7 +725,7 @@ EOF
 systemctl daemon-reload
 systemctl restart qmtr
 systemctl enable qmtr
-
+}
 
 function udp_mini(){
 clear
