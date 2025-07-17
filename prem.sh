@@ -94,7 +94,6 @@ checking_sc() {
 checking_sc
 
 # --- OS Architecture Check ---
-echo -e "${INFO} Checking OS Architecture..."
 ARCH=$(uname -m)
 if [[ "$ARCH" == "x86_64" ]]; then
     echo -e "${OK} Your Architecture is Supported (${GREEN}${ARCH}${NC})"
@@ -104,7 +103,6 @@ else
 fi
 
 # --- Operating System Check ---
-echo -e "${INFO} Checking Operating System..."
 if [[ -f /etc/os-release ]]; then
     . /etc/os-release # Loads variables like ID and PRETTY_NAME
     if [[ "$ID" == "ubuntu" || "$ID" == "debian" ]]; then
@@ -119,7 +117,6 @@ else
 fi
 
 # --- Validate Pre-defined IP Address (if any) ---
-echo -e "${INFO} Validating pre-defined IP Address..."
 if [[ -z "$IP" ]]; then
     echo -e "${ERROR} IP Address ( ${YELLOW}Not Detected${NC} )"
 else
@@ -127,7 +124,6 @@ else
 fi
 
 # --- Get Public IP Address ---
-echo -e "${INFO} Getting public IP address..."
 MYIP=$(curl -sS ipv4.icanhazip.com)
 if [[ -z "$MYIP" ]]; then
     echo -e "${ERROR} Failed to get public IP. Ensure internet connection is working."
@@ -139,7 +135,6 @@ echo -e "${OK} Public IP Detected: ${GREEN}${MYIP}${NC}"
 USERNAME_SOURCE="https://raw.githubusercontent.com/jaka2m/permission/main/ipmini"
 
 # --- Remove and Recreate /usr/bin/user file ---
-echo -e "${INFO} Preparing user data file..."
 if [[ -f /usr/bin/user ]]; then
     rm -f /usr/bin/user
     if [[ $? -ne 0 ]]; then
@@ -149,7 +144,6 @@ if [[ -f /usr/bin/user ]]; then
 fi
 
 # --- Fetch and Store Username ---
-echo -e "${INFO} Fetching username..."
 username=$(curl -sS "$USERNAME_SOURCE" | grep "$MYIP" | awk '{print $2}')
 if [[ -z "$username" ]]; then
     echo -e "${ERROR} Username not found for IP ${YELLOW}${MYIP}${NC} from ${USERNAME_SOURCE}."
@@ -165,7 +159,6 @@ else
 fi
 
 # --- Fetch and Store Expiration Date (expx) ---
-echo -e "${INFO} Fetching expiration date..."
 expx=$(curl -sS "$USERNAME_SOURCE" | grep "$MYIP" | awk '{print $3}')
 if [[ -z "$expx" ]]; then
     echo -e "${ERROR} Expiration date not found for IP ${YELLOW}${MYIP}${NC}."
@@ -180,7 +173,6 @@ else
 fi
 
 # --- Fetch Exp1 (4th column) ---
-echo -e "${INFO} Fetching Exp1 data..."
 Exp1=$(curl -sS "$USERNAME_SOURCE" | grep "$MYIP" | awk '{print $4}')
 if [[ -z "$Exp1" ]]; then
     echo -e "${ERROR} Exp1 data (4th column) not found for IP ${YELLOW}${MYIP}${NC}."
@@ -188,7 +180,6 @@ if [[ -z "$Exp1" ]]; then
 fi
 
 # --- Check Account Status (Expired/Active) ---
-echo -e "${INFO} Checking account status..."
 today_date=$(date +'%Y-%m-%d') # Today's date format
 DATE=$(date +'%Y-%m-%d') # DATE variable set here for consistency if used later
 
