@@ -38,6 +38,18 @@ NC='\e[0m'
 red='\e[1;31m'
 green='\e[0;32m'
 
+mkdir -p /etc/ambe/
+cat >/etc/ambe/var.txt <<EOF
+INFO_KILLS="6946747820:AAG0LHxHvy-e40ZpOwH0TuBQJEKM-Zj7Amc"
+INFO_AKUN="6946747820:AAG0LHxHvy-e40ZpOwH0TuBQJEKM-Zj7Amc"
+INFO_BACKUP="6946747820:AAG0LHxHvy-e40ZpOwH0TuBQJEKM-Zj7Amc"
+INFO_INSTALLER="6946747820:AAG0LHxHvy-e40ZpOwH0TuBQJEKM-Zj7Amc"
+INFO_DAFTAR="6946747820:AAG0LHxHvy-e40ZpOwH0TuBQJEKM-Zj7Amc"
+ADMIN="1467883032"
+TIME="10"
+EOF
+source '/etc/ambe/var.txt'
+
 # Bersihkan layar
 clear
 clear && clear && clear
