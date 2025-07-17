@@ -31,7 +31,7 @@ BLUE="\033[36m"
 FONT="\033[0m"
 GREENBG="\033[42;37m"
 REDBG="\033[41;37m"
-OK="${GREEN}➡️ ${FONT}"
+OK="${GREEN}=> ${FONT}"
 ERROR="${RED}[ERROR]${FONT}"
 GRAY="\e[1;30m"
 NC='\e[0m'
@@ -82,8 +82,6 @@ checking_sc() {
 checking_sc
 
 ## Pengecekan Arsitektur OS
-echo "---"
-echo "# Pengecekan Arsitektur OS"
 ARCH=$(uname -m)
 if [[ "$ARCH" == "x86_64" ]]; then
     echo -e "${OK} Arsitektur Anda Didukung ( ${GREEN}${ARCH}${NC} )"
@@ -92,13 +90,9 @@ else
     exit 1
 fi
 
----
-
 ## Pengecekan Sistem Operasi
-echo "---"
-echo "# Pengecekan Sistem Operasi"
 if [[ -f /etc/os-release ]]; then
-    . /etc/os-release # Sumber file untuk memuat variabel ID dan PRETTY_NAME
+    . /etc/os-release
     if [[ "$ID" == "ubuntu" || "$ID" == "debian" ]]; then
         echo -e "${OK} OS Anda Didukung ( ${GREEN}${PRETTY_NAME}${NC} )"
     else
@@ -110,31 +104,20 @@ else
     exit 1
 fi
 
----
-
 ## Validasi Alamat IP
-echo "---"
-echo "# Validasi Alamat IP"
-# Gunakan variabel IP yang sudah ada, atau deteksi jika belum ada
 if [[ -z "$IP" ]]; then
     echo -e "${ERROR} Alamat IP ( ${YELLOW}Tidak Terdeteksi${NC} )"
 else
     echo -e "${OK} Alamat IP ( ${GREEN}${IP}${NC} )"
 fi
 
----
-
 ## Persiapan Pengguna & IP Publik
-echo "---"
-echo "# Persiapan Pengguna & IP Publik"
 MYIP=$(curl -sS ipv4.icanhazip.com)
 if [[ -z "$MYIP" ]]; then
     echo -e "${ERROR} Gagal mendapatkan IP publik. Pastikan koneksi internet berfungsi."
     exit 1
 fi
 
-# Hapus file /usr/bin/user jika ada dan buat ulang
-# Pastikan Anda memiliki izin yang cukup untuk ini
 if [[ -f /usr/bin/user ]]; then
     rm -f /usr/bin/user
     if [[ $? -ne 0 ]]; then
