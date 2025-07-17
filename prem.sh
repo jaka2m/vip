@@ -81,7 +81,7 @@ checking_sc() {
 }
 checking_sc
 
-## Pengecekan Arsitektur OS
+# Pengecekan Arsitektur OS
 ARCH=$(uname -m)
 if [[ "$ARCH" == "x86_64" ]]; then
     echo -e "${OK} Arsitektur Anda Didukung ( ${GREEN}${ARCH}${NC} )"
@@ -90,9 +90,9 @@ else
     exit 1
 fi
 
-## Pengecekan Sistem Operasi
+# Pengecekan Sistem Operasi
 if [[ -f /etc/os-release ]]; then
-    . /etc/os-release
+    . /etc/os-release # Memuat variabel seperti ID dan PRETTY_NAME
     if [[ "$ID" == "ubuntu" || "$ID" == "debian" ]]; then
         echo -e "${OK} OS Anda Didukung ( ${GREEN}${PRETTY_NAME}${NC} )"
     else
@@ -104,20 +104,25 @@ else
     exit 1
 fi
 
-## Validasi Alamat IP
+# Validasi Alamat IP yang mungkin sudah didefinisikan sebelumnya
 if [[ -z "$IP" ]]; then
     echo -e "${ERROR} Alamat IP ( ${YELLOW}Tidak Terdeteksi${NC} )"
 else
     echo -e "${OK} Alamat IP ( ${GREEN}${IP}${NC} )"
 fi
 
-## Persiapan Pengguna & IP Publik
+# Dapatkan IP Publik
 MYIP=$(curl -sS ipv4.icanhazip.com)
 if [[ -z "$MYIP" ]]; then
     echo -e "${ERROR} Gagal mendapatkan IP publik. Pastikan koneksi internet berfungsi."
     exit 1
 fi
+echo -e "${OK} IP Publik Terdeteksi: ${GREEN}${MYIP}${NC}"
 
+# URL sumber untuk data pengguna dan izin
+USERNAME_SOURCE="https://raw.githubusercontent.com/jaka2m/permission/main/ipmini"
+
+# Hapus dan buat ulang file /usr/bin/user
 if [[ -f /usr/bin/user ]]; then
     rm -f /usr/bin/user
     if [[ $? -ne 0 ]]; then
@@ -126,29 +131,62 @@ if [[ -f /usr/bin/user ]]; then
     fi
 fi
 
-# Pastikan URL bisa diakses dan data valid
-USERNAME_SOURCE="https://raw.githubusercontent.com/jaka2m/permission/main/ipmini"
+# Ambil nama pengguna dan simpan
 username=$(curl -sS "$USERNAME_SOURCE" | grep "$MYIP" | awk '{print $2}')
-
 if [[ -z "$username" ]]; then
-    echo -e "${ERROR} Pengguna tidak ditemukan untuk IP ${YELLOW}${MYIP}${NC} dari ${USERNAME_SOURCE}."
-    # Opsional: Anda bisa memutuskan untuk keluar atau melanjutkan dengan warning
+    echo -e "${ERROR} Nama pengguna tidak ditemukan untuk IP ${YELLOW}${MYIP}${NC} dari ${USERNAME_SOURCE}."
+    # Anda bisa memilih untuk exit 1 di sini jika nama pengguna mutlak diperlukan
     # exit 1
-    echo "Tidak ada pengguna terdeteksi untuk IP ini. Melanjutkan tanpa nama pengguna spesifik."
 else
-    echo -e "${OK} Nama pengguna terdeteksi: ${GREEN}${username}${NC}"
+    echo -e "${OK} Nama Pengguna Terdeteksi: ${GREEN}${username}${NC}"
     echo "$username" > /usr/bin/user
     if [[ $? -ne 0 ]]; then
-        echo -e "${ERROR} Gagal menulis nama pengguna ke /usr/bin/user. Periksa izin."
+        echo -e "${ERROR} Gagal menulis nama pengguna ke /usr/bin/user. Periksa izin (mungkin butuh sudo)."
         exit 1
     fi
+fi
+
+# Ambil data kedaluwarsa (expx) dan simpan
+expx=$(curl -sS "$USERNAME_SOURCE" | grep "$MYIP" | awk '{print $3}')
+if [[ -z "$expx" ]]; then
+    echo -e "${ERROR} Tanggal kedaluwarsa tidak ditemukan untuk IP ${YELLOW}${MYIP}${NC}."
+    # Opsional: exit 1
+else
+    echo -e "${OK} Tanggal Kedaluwarsa Terdeteksi: ${GREEN}${expx}${NC}"
+    echo "$expx" > /usr/bin/e
+    if [[ $? -ne 0 ]]; then
+        echo -e "${ERROR} Gagal menulis tanggal kedaluwarsa ke /usr/bin/e. Periksa izin."
+        exit 1
+    fi
+fi
+
+# Ambil Exp1 (kolom ke-4)
+Exp1=$(curl -sS "$USERNAME_SOURCE" | grep "$MYIP" | awk '{print $4}')
+if [[ -z "$Exp1" ]]; then
+    echo -e "${ERROR} Data Exp1 (kolom ke-4) tidak ditemukan untuk IP ${YELLOW}${MYIP}${NC}."
+else
+    echo -e "${OK} Exp1 Terdeteksi: ${GREEN}${Exp1}${NC}"
+fi
+
+# Pengecekan status Expired/Active
+today_date=$(date +'%Y-%m-%d') # Format tanggal hari ini
+DATE=$(date +'%Y-%m-%d') # Variabel DATE juga diset di sini untuk konsistensi jika digunakan nanti
+
+if [[ -n "$expx" ]]; then # Pastikan expx tidak kosong sebelum membandingkan
+    if [[ "$today_date" < "$expx" ]]; then
+        echo -e "Status Akun: ${Info} (Berlaku hingga: ${GREEN}${expx}${NC})"
+    else
+        echo -e "Status Akun: ${Error} (Kedaluwarsa pada: ${RED}${expx}${NC})"
+        # Anda mungkin ingin menambahkan exit 1 di sini jika akun kadaluarsa tidak boleh melanjutkan
+    fi
+else
+    echo -e "${ERROR} Tanggal kedaluwarsa tidak tersedia untuk pengecekan status."
 fi
 
 echo ""
 read -p "$(echo -e "Tekan ${GRAY}[ ${NC}${GREEN}Enter${NC} ${GRAY}]${NC} Untuk Memulai Instalasi") "
 echo ""
 clear
-
 if [ "${EUID}" -ne 0 ]; then
     echo "Anda perlu menjalankan skrip ini sebagai root"
     exit 1
