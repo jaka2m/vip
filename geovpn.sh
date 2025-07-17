@@ -1,42 +1,49 @@
 #!/bin/bash
-NS=$( cat /etc/xray/dns )
-PUB=$( cat /etc/slowdns/server.pub )
+
 domain=$(cat /etc/xray/domain)
-#color
+
 grenbo="\e[92;1m"
 NC='\e[0m'
-#install
-apt update && apt upgrade
-apt install python3 python3-pip git
+Light_Red='\e[1;91m'
+Light_Green='\e[1;92m'
+White_Bold='\e[1;97m'
+Blue='\033[0;36m'
+
+apt update && apt upgrade -y
+apt install python3 python3-pip git -y
+
 cd /usr/bin
-wget https://raw.githubusercontent.com/ALVIICELL/vip/main/bot/bot.zip
+wget -O bot.zip https://raw.githubusercontent.com/jaka2m/vip/main/bot/bot.zip
 unzip bot.zip
-mv bot/* /usr/bin
+mv bot/* /usr/bin/
 chmod +x /usr/bin/*
-clear
-wget https://raw.githubusercontent.com/jaka2m/vip/main/bot/geovpn.zip
-unzip geovpn.zip
-pip3 install -r geovpn/requirements.txt
+rm -rf bot.zip bot/
 
-#isi data
-echo ""
-echo -e "\033[1;36mâ”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\033[0m"
-echo -e " \e[1;97;101m          ADD BOT PANEL          \e[0m"
-echo -e "\033[1;36mâ”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\033[0m"
-echo -e "${grenbo}Tutorial Creat Bot and ID Telegram${NC}"
-echo -e "${grenbo}[*] Creat Bot and Token Bot : @BotFather${NC}"
-echo -e "${grenbo}[*] Info Id Telegram : @MissRose_bot , perintah /info${NC}"
-echo -e "\033[1;36mâ”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\033[0m"
-read -e -p "[*] Input your Bot Token : " bottoken
-read -e -p "[*] Input Your Id Telegram :" admin
-echo -e BOT_TOKEN='"'$bottoken'"' >> /usr/bin/geovpn/var.txt
-echo -e ADMIN='"'$admin'"' >> /usr/bin/geovpn/var.txt
-echo -e DOMAIN='"'$domain'"' >> /usr/bin/geovpn/var.txt
-echo -e PUB='"'$PUB'"' >> /usr/bin/geovpn/var.txt
-echo -e HOST='"'$NS'"' >> /usr/bin/geovpn/var.txt
+wget -O geovpn.zip https://raw.githubusercontent.com/jaka2m/vip/main/bot/geovpn.zip
+unzip geovpn.zip -d /usr/bin/
+pip3 install -r /usr/bin/geovpn/requirements.txt
+rm -rf geovpn.zip
+
 clear
 
-cat > /etc/systemd/system/geovpn.service << END
+echo -e "${Blue}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e " ${White_Bold}\e[101m           TAMBAH BOT PANEL           ${NC}"
+echo -e "${Blue}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${grenbo}Tutorial Membuat Bot dan ID Telegram:${NC}"
+echo -e "${grenbo}[*] Buat Bot dan Dapatkan Token Bot dari: @BotFather${NC}"
+echo -e "${grenbo}[*] Dapatkan ID Telegram Anda dari: @MissRose_bot, gunakan perintah /info${NC}"
+echo -e "${Blue}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+read -e -p "[*] Masukkan Token Bot Anda : " bottoken
+read -e -p "[*] Masukkan ID Telegram Admin Anda : " admin
+
+echo -e "BOT_TOKEN=\"$bottoken\"" > /usr/bin/geovpn/var.txt
+echo -e "ADMIN=\"$admin\"" >> /usr/bin/geovpn/var.txt
+echo -e "DOMAIN=\"$domain\"" >> /usr/bin/geovpn/var.txt
+
+clear
+
+cat > /etc/systemd/system/geovpn.service << EOF
 [Unit]
 Description=Simple geovpn - @geovpn
 After=network.target
@@ -48,24 +55,25 @@ Restart=always
 
 [Install]
 WantedBy=multi-user.target
-END
+EOF
 
-systemctl start geovpn 
+systemctl daemon-reload
 systemctl enable geovpn
+systemctl start geovpn
 systemctl restart geovpn
-cd /root
-echo "Done"
-echo "Your Data Bot"
-echo -e "==============================="
-echo "Token Bot         : $bottoken"
-echo "Admin          : $admin"
-echo "Domain        : $domain"
-echo "Pub            : $PUB"
-echo "Host           : $NS"
-echo -e "==============================="
-echo "Setting done"
-clear
 
-echo " Installations complete, type /menu on your bot"
-rm -rf geovpn.sh
-rm -rf bot.zip
+cd /root
+echo "Selesai!"
+echo ""
+echo -e "${Light_Green}Data Bot Anda:${NC}"
+echo -e "==============================="
+echo "Token Bot     : ${bottoken}"
+echo "Admin ID      : ${admin}"
+echo "Domain        : ${domain}"
+echo -e "==============================="
+echo "Pengaturan selesai."
+echo ""
+echo "Instalasi selesai, ketik /menu di bot Anda."
+
+# Cleanup temporary files (assuming geovpn.sh is the current script)
+rm -f geovpn.sh
