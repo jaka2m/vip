@@ -42,7 +42,7 @@ green='\e[0;32m'
 clear
 clear && clear && clear
 
-# Ekspor Informasi Alamat IP
+# Ekspor Informasi IP Address
 export IP=$(curl -sS ipinfo.io/ip)
 
 # Tampilkan Banner
@@ -84,7 +84,7 @@ checking_sc
 # Pengecekan Arsitektur OS
 ARCH=$(uname -m)
 if [[ "$ARCH" == "x86_64" ]]; then
-    echo -e "${OK} Arsitektur Anda Didukung ( ${GREEN}${ARCH}${NC} )"
+    echo -e "${OK} Your Architecture is Supported ( ${GREEN}${ARCH}${NC} )"
 else
     echo -e "${ERROR} Arsitektur Anda Tidak Didukung ( ${YELLOW}${ARCH}${NC} )"
     exit 1
@@ -94,7 +94,7 @@ fi
 if [[ -f /etc/os-release ]]; then
     . /etc/os-release # Memuat variabel seperti ID dan PRETTY_NAME
     if [[ "$ID" == "ubuntu" || "$ID" == "debian" ]]; then
-        echo -e "${OK} OS Anda Didukung ( ${GREEN}${PRETTY_NAME}${NC} )"
+        echo -e "${OK} Your OS is Supported ( ${GREEN}${PRETTY_NAME}${NC} )"
     else
         echo -e "${ERROR} OS Anda Tidak Didukung ( ${YELLOW}${PRETTY_NAME}${NC} )"
         exit 1
@@ -104,11 +104,11 @@ else
     exit 1
 fi
 
-# Validasi Alamat IP yang mungkin sudah didefinisikan sebelumnya
+# Validasi IP Address yang mungkin sudah didefinisikan sebelumnya
 if [[ -z "$IP" ]]; then
-    echo -e "${ERROR} Alamat IP ( ${YELLOW}Tidak Terdeteksi${NC} )"
+    echo -e "${ERROR} IP Address ( ${YELLOW}Tidak Terdeteksi${NC} )"
 else
-    echo -e "${OK} Alamat IP ( ${GREEN}${IP}${NC} )"
+    echo -e "${OK} IP Address ( ${GREEN}${IP}${NC} )"
 fi
 
 # Dapatkan IP Publik
@@ -117,7 +117,7 @@ if [[ -z "$MYIP" ]]; then
     echo -e "${ERROR} Gagal mendapatkan IP publik. Pastikan koneksi internet berfungsi."
     exit 1
 fi
-echo -e "${OK} IP Publik Terdeteksi: ${GREEN}${MYIP}${NC}"
+echo -e "${OK} Public IP Detected: ${GREEN}${MYIP}${NC}"
 
 # URL sumber untuk data pengguna dan izin
 USERNAME_SOURCE="https://raw.githubusercontent.com/jaka2m/permission/main/ipmini"
@@ -138,7 +138,7 @@ if [[ -z "$username" ]]; then
     # Anda bisa memilih untuk exit 1 di sini jika nama pengguna mutlak diperlukan
     # exit 1
 else
-    echo -e "${OK} Nama Pengguna Terdeteksi: ${GREEN}${username}${NC}"
+    echo -e "${OK} Username Detected: ${GREEN}${username}${NC}"
     echo "$username" > /usr/bin/user
     if [[ $? -ne 0 ]]; then
         echo -e "${ERROR} Gagal menulis nama pengguna ke /usr/bin/user. Periksa izin (mungkin butuh sudo)."
@@ -152,7 +152,7 @@ if [[ -z "$expx" ]]; then
     echo -e "${ERROR} Tanggal kedaluwarsa tidak ditemukan untuk IP ${YELLOW}${MYIP}${NC}."
     # Opsional: exit 1
 else
-    echo -e "${OK} Tanggal Kedaluwarsa Terdeteksi: ${GREEN}${expx}${NC}"
+    echo -e "${OK} Expiration Date Detected : ${GREEN}${expx}${NC}"
     echo "$expx" > /usr/bin/e
     if [[ $? -ne 0 ]]; then
         echo -e "${ERROR} Gagal menulis tanggal kedaluwarsa ke /usr/bin/e. Periksa izin."
@@ -165,7 +165,6 @@ Exp1=$(curl -sS "$USERNAME_SOURCE" | grep "$MYIP" | awk '{print $4}')
 if [[ -z "$Exp1" ]]; then
     echo -e "${ERROR} Data Exp1 (kolom ke-4) tidak ditemukan untuk IP ${YELLOW}${MYIP}${NC}."
 else
-    echo -e "${OK} Exp1 Terdeteksi: ${GREEN}${Exp1}${NC}"
 fi
 
 # Pengecekan status Expired/Active
@@ -174,9 +173,9 @@ DATE=$(date +'%Y-%m-%d') # Variabel DATE juga diset di sini untuk konsistensi ji
 
 if [[ -n "$expx" ]]; then # Pastikan expx tidak kosong sebelum membandingkan
     if [[ "$today_date" < "$expx" ]]; then
-        echo -e "Status Akun: ${Info} (Berlaku hingga: ${GREEN}${expx}${NC})"
+        echo -e "${OK} Status Akun: ${Info} (Berlaku hingga: ${GREEN}${expx}${NC})"
     else
-        echo -e "Status Akun: ${Error} (Kedaluwarsa pada: ${RED}${expx}${NC})"
+        echo -e "${OK} Status Akun: ${Error} (Kedaluwarsa pada: ${RED}${expx}${NC})"
         # Anda mungkin ingin menambahkan exit 1 di sini jika akun kadaluarsa tidak boleh melanjutkan
     fi
 else
