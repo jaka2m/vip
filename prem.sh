@@ -93,111 +93,121 @@ checking_sc() {
 }
 checking_sc
 
-# Pengecekan Arsitektur OS
+# --- OS Architecture Check ---
+echo -e "${INFO} Checking OS Architecture..."
 ARCH=$(uname -m)
 if [[ "$ARCH" == "x86_64" ]]; then
-    echo -e "${OK} Your Architecture is Supported ( ${GREEN}${ARCH}${NC} )"
+    echo -e "${OK} Your Architecture is Supported (${GREEN}${ARCH}${NC})"
 else
-    echo -e "${ERROR} Arsitektur Anda Tidak Didukung ( ${YELLOW}${ARCH}${NC} )"
+    echo -e "${ERROR} Your Architecture is Not Supported (${YELLOW}${ARCH}${NC})"
     exit 1
 fi
 
-# Pengecekan Sistem Operasi
+# --- Operating System Check ---
+echo -e "${INFO} Checking Operating System..."
 if [[ -f /etc/os-release ]]; then
-    . /etc/os-release # Memuat variabel seperti ID dan PRETTY_NAME
+    . /etc/os-release # Loads variables like ID and PRETTY_NAME
     if [[ "$ID" == "ubuntu" || "$ID" == "debian" ]]; then
-        echo -e "${OK} Your OS is Supported ( ${GREEN}${PRETTY_NAME}${NC} )"
+        echo -e "${OK} Your OS is Supported (${GREEN}${PRETTY_NAME}${NC})"
     else
-        echo -e "${ERROR} OS Anda Tidak Didukung ( ${YELLOW}${PRETTY_NAME}${NC} )"
+        echo -e "${ERROR} Your OS is Not Supported (${YELLOW}${PRETTY_NAME}${NC})"
         exit 1
     fi
 else
-    echo -e "${ERROR} File /etc/os-release tidak ditemukan. Tidak dapat mendeteksi OS."
+    echo -e "${ERROR} /etc/os-release file not found. Unable to detect OS."
     exit 1
 fi
 
-# Validasi IP Address yang mungkin sudah didefinisikan sebelumnya
+# --- Validate Pre-defined IP Address (if any) ---
+echo -e "${INFO} Validating pre-defined IP Address..."
 if [[ -z "$IP" ]]; then
-    echo -e "${ERROR} IP Address ( ${YELLOW}Tidak Terdeteksi${NC} )"
+    echo -e "${ERROR} IP Address ( ${YELLOW}Not Detected${NC} )"
 else
     echo -e "${OK} IP Address ( ${GREEN}${IP}${NC} )"
 fi
 
-# Dapatkan IP Publik
+# --- Get Public IP Address ---
+echo -e "${INFO} Getting public IP address..."
 MYIP=$(curl -sS ipv4.icanhazip.com)
 if [[ -z "$MYIP" ]]; then
-    echo -e "${ERROR} Gagal mendapatkan IP publik. Pastikan koneksi internet berfungsi."
+    echo -e "${ERROR} Failed to get public IP. Ensure internet connection is working."
     exit 1
 fi
 echo -e "${OK} Public IP Detected: ${GREEN}${MYIP}${NC}"
 
-# URL sumber untuk data pengguna dan izin
+# --- Source URL for User Data and Permissions ---
 USERNAME_SOURCE="https://raw.githubusercontent.com/jaka2m/permission/main/ipmini"
 
-# Hapus dan buat ulang file /usr/bin/user
+# --- Remove and Recreate /usr/bin/user file ---
+echo -e "${INFO} Preparing user data file..."
 if [[ -f /usr/bin/user ]]; then
     rm -f /usr/bin/user
     if [[ $? -ne 0 ]]; then
-        echo -e "${ERROR} Gagal menghapus /usr/bin/user. Periksa izin."
+        echo -e "${ERROR} Failed to delete /usr/bin/user. Check permissions."
         exit 1
     fi
 fi
 
-# Ambil nama pengguna dan simpan
+# --- Fetch and Store Username ---
+echo -e "${INFO} Fetching username..."
 username=$(curl -sS "$USERNAME_SOURCE" | grep "$MYIP" | awk '{print $2}')
 if [[ -z "$username" ]]; then
-    echo -e "${ERROR} Nama pengguna tidak ditemukan untuk IP ${YELLOW}${MYIP}${NC} dari ${USERNAME_SOURCE}."
-    # Anda bisa memilih untuk exit 1 di sini jika nama pengguna mutlak diperlukan
+    echo -e "${ERROR} Username not found for IP ${YELLOW}${MYIP}${NC} from ${USERNAME_SOURCE}."
+    # Uncomment the line below if a username is absolutely required
     # exit 1
 else
     echo -e "${OK} Username Detected: ${GREEN}${username}${NC}"
     echo "$username" > /usr/bin/user
     if [[ $? -ne 0 ]]; then
-        echo -e "${ERROR} Gagal menulis nama pengguna ke /usr/bin/user. Periksa izin (mungkin butuh sudo)."
+        echo -e "${ERROR} Failed to write username to /usr/bin/user. Check permissions (might need sudo)."
         exit 1
     fi
 fi
 
-# Ambil data kedaluwarsa (expx) dan simpan
+# --- Fetch and Store Expiration Date (expx) ---
+echo -e "${INFO} Fetching expiration date..."
 expx=$(curl -sS "$USERNAME_SOURCE" | grep "$MYIP" | awk '{print $3}')
 if [[ -z "$expx" ]]; then
-    echo -e "${ERROR} Tanggal kedaluwarsa tidak ditemukan untuk IP ${YELLOW}${MYIP}${NC}."
-    # Opsional: exit 1
+    echo -e "${ERROR} Expiration date not found for IP ${YELLOW}${MYIP}${NC}."
+    # Optional: exit 1
 else
     echo -e "${OK} Expiration Date Detected : ${GREEN}${expx}${NC}"
     echo "$expx" > /usr/bin/e
     if [[ $? -ne 0 ]]; then
-        echo -e "${ERROR} Gagal menulis tanggal kedaluwarsa ke /usr/bin/e. Periksa izin."
+        echo -e "${ERROR} Failed to write expiration date to /usr/bin/e. Check permissions."
         exit 1
     fi
 fi
 
-# Ambil Exp1 (kolom ke-4)
+# --- Fetch Exp1 (4th column) ---
+echo -e "${INFO} Fetching Exp1 data..."
 Exp1=$(curl -sS "$USERNAME_SOURCE" | grep "$MYIP" | awk '{print $4}')
 if [[ -z "$Exp1" ]]; then
-    echo -e "${ERROR} Data Exp1 (kolom ke-4) tidak ditemukan untuk IP ${YELLOW}${MYIP}${NC}."
-else
+    echo -e "${ERROR} Exp1 data (4th column) not found for IP ${YELLOW}${MYIP}${NC}."
+    # No 'else' block needed here as no action is taken if found
 fi
 
-# Pengecekan status Expired/Active
-today_date=$(date +'%Y-%m-%d') # Format tanggal hari ini
-DATE=$(date +'%Y-%m-%d') # Variabel DATE juga diset di sini untuk konsistensi jika digunakan nanti
+# --- Check Account Status (Expired/Active) ---
+echo -e "${INFO} Checking account status..."
+today_date=$(date +'%Y-%m-%d') # Today's date format
+DATE=$(date +'%Y-%m-%d') # DATE variable set here for consistency if used later
 
-if [[ -n "$expx" ]]; then # Pastikan expx tidak kosong sebelum membandingkan
+if [[ -n "$expx" ]]; then # Ensure expx is not empty before comparing
     if [[ "$today_date" < "$expx" ]]; then
-        echo -e "${OK} Status Akun: ${Info} (Berlaku hingga: ${GREEN}${expx}${NC})"
+        echo -e "${OK} Account Status: ${INFO} (Valid until: ${GREEN}${expx}${NC})"
     else
-        echo -e "${OK} Status Akun: ${Error} (Kedaluwarsa pada: ${RED}${expx}${NC})"
-        # Anda mungkin ingin menambahkan exit 1 di sini jika akun kadaluarsa tidak boleh melanjutkan
+        echo -e "${OK} Account Status: ${RED}Expired (Expired on: ${RED}${expx}${NC})" # Used RED for clarity
+        # You might want to add exit 1 here if an expired account should not proceed
     fi
 else
-    echo -e "${ERROR} Tanggal kedaluwarsa tidak tersedia untuk pengecekan status."
+    echo -e "${ERROR} Expiration date not available for status check."
 fi
 
 echo ""
-read -p "$(echo -e "Tekan ${GRAY}[ ${NC}${GREEN}Enter${NC} ${GRAY}]${NC} Untuk Memulai Instalasi") "
+read -p "$(echo -e "Press ${GRAY}[ ${NC}${GREEN}Enter${NC} ${GRAY}]${NC} To Start Installation") "
 echo ""
 clear
+
 if [ "${EUID}" -ne 0 ]; then
     echo "Anda perlu menjalankan skrip ini sebagai root"
     exit 1
