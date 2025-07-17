@@ -31,7 +31,7 @@ BLUE="\033[36m"
 FONT="\033[0m"
 GREENBG="\033[42;37m"
 REDBG="\033[41;37m"
-OK="${GREEN}➡️${FONT}"
+OK="${GREEN}➡️ ${FONT}"
 ERROR="${RED}[ERROR]${FONT}"
 GRAY="\e[1;30m"
 NC='\e[0m'
@@ -1258,8 +1258,8 @@ rm -rf /root/*.sh
 rm -rf /root/LICENSE
 rm -rf /root/README.md
 rm -rf /root/domain
-clear
 #sudo hostnamectl set-hostname $user
+secs_to_human "$(($(date +%s) - ${start}))"
 echo ""
 samawa
 echo " "
@@ -1303,7 +1303,7 @@ echo -e " ${green}│${NC}   - Full Orders For Various Services                $
 echo -e " ${green}└─────────────────────────────────────────────────────┘${NC}"
 echo ""
 echo ""
-secs_to_human "$(($(date +%s) - ${start}))"secs_to_human "$(($(date +%s) - ${start}))"secs_to_human "$(($(date +%s) - ${start}))"secs_to_human "$(($(date +%s) - ${start}))"secs_to_human "$(($(date +%s) - ${start}))"secs_to_human "$(($(date +%s) - ${start}))"secs_to_human "$(($(date +%s) - ${start}))"
+echo "" | tee -a log-install.txt
 echo -e ""
 #sudo hostnamectl set-hostname $username
 echo -e "${green} Script Successfull Installed"
