@@ -293,6 +293,8 @@ function is_root() {
 }
 
 # Buat direktori xray
+echo -e ""
+clear
 print_install "Membuat direktori xray"
     mkdir -p /etc/xray
     
@@ -356,6 +358,8 @@ fi
 ## GEO PROJECT
 clear
 function nginx_install() {
+echo -e ""
+clear
     # // Checking System
     if [[ $(cat /etc/os-release | grep -w ID | head -n1 | sed 's/=//g' | sed 's/"//g' | sed 's/ID//g') == "ubuntu" ]]; then
         print_install "Setup nginx For OS Is $(cat /etc/os-release | grep -w PRETTY_NAME | head -n1 | sed 's/=//g' | sed 's/"//g' | sed 's/PRETTY_NAME//g')"
@@ -372,6 +376,7 @@ function nginx_install() {
 
 # Update and remove packages
 function base_package() {
+    echo -e ""
     clear
     ########
     print_install "Menginstall Packet Yang Dibutuhkan"
@@ -435,15 +440,18 @@ rm -f /root/cf.sh
 clear
     fi
     print_success "Subdomain/Domain"
-    echo ""
-    echo ""
-    echo "${GRAY}Subdomain/Domain anda :${NC} ${OK} ${SUB_DOMAIN} ${NC}"
-sleep 2
+    echo -e " "
+    echo -e " "
+echo -e "${OK} Your Domain : ${SUB_DOMAIN}"
+sleep 4
+echo -e ""
 }
 
 clear
 #GANTI PASSWORD DEFAULT
 function password_default() {
+echo -e ""
+clear
 domain=$(cat /root/domain)
 userdel geo > /dev/null 2>&1
 Username="geo"
@@ -481,6 +489,7 @@ curl -s --max-time $TIME -d "chat_id=$ADMIN&disable_web_page_preview=1&text=$TEX
 clear
 # Pasang SSL
 function pasang_ssl() {
+echo -e ""
 clear
 print_install "Memasang SSL Pada Domain"
     rm -rf /etc/xray/xray.key
@@ -544,6 +553,7 @@ rm -rf /etc/vmess/.vmess.db
     }
 #Instal Xray
 function install_xray() {
+echo -e ""
 clear
     print_install "Core Xray 1.8.1 Latest Version"
     # install xray
@@ -606,6 +616,7 @@ print_success "Konfigurasi Packet"
 }
 
 function ssh(){
+    echo -e ""
     clear
     echo -e "${GRAY}----------------------------------------------------------${NC}"
     echo -e "                 Memulai Konfigurasi SSH"
@@ -738,7 +749,8 @@ END
 }
 
 function limit_quota(){
-    clear
+    echo -e ""
+clear
     echo -e "${GRAY}----------------------------------------------------------${NC}"
     echo -e "             Memulai Pengaturan Batas Kuota"
     echo -e "${GRAY}----------------------------------------------------------${NC}"
@@ -924,6 +936,7 @@ EOF
 }
 
 function udp_mini(){
+echo -e ""
 clear
 print_install "MEMASANG UDP MINI"
 mkdir -p /usr/local/geovpn/
@@ -949,6 +962,7 @@ print_success "UDP MINI"
 }
 
 function ssh_udp(){
+echo -e ""
 clear
 print_install "MEMASANG SSH UDP"
 mkdir -p /etc/geovpn/
@@ -975,6 +989,7 @@ systemctl status udp --no-pager
 
 clear
 function ins_SSHD(){
+echo -e ""
 clear
 print_install "Memasang SSHD"
 wget -q -O /etc/ssh/sshd_config "${REPO}ws/sshd" >/dev/null 2>&1
@@ -987,6 +1002,7 @@ print_success "SSHD"
 
 clear
 function ins_dropbear(){
+echo -e ""
 clear
 print_install "MENGINSTALL DROPBEAR"
 if ! command -v wget &> /dev/null
@@ -1023,6 +1039,7 @@ print_success "DROPBEAR"
 
 clear
 function ins_vnstat(){
+echo -e ""
 clear
 print_install "Menginstall Vnstat"
 # setting vnstat
@@ -1046,6 +1063,7 @@ print_success "Vnstat"
 }
 
 function ins_openvpn(){
+echo -e ""
 clear
 print_install "Menginstall OpenVPN"
 #OpenVPN
@@ -1059,6 +1077,7 @@ print_success "OpenVPN"
 
 clear
 function ins_swab(){
+echo -e ""
 clear
 print_install "Memasang Swap 1 G"
 gotop_latest="$(curl -s https://api.github.com/repos/xxxserxxx/gotop/releases | grep tag_name | sed -E 's/.*"v(.*)".*/\1/' | head -n 1)"
@@ -1085,6 +1104,7 @@ print_success "Swap 1 G"
 }
 
 function ins_Fail2ban(){
+echo -e ""
 clear
 print_install "Menginstall Fail2ban"
 apt -y install fail2ban > /dev/null 2>&1
@@ -1095,6 +1115,7 @@ print_success "Fail2ban"
 }
 
 function DDoS_Deflate(){
+echo -e ""
 clear
 print_install "MEMASANG DDoS-Deflate"
 wget -qO /usr/sbin/ddos.zip "${REPO}ssh/ddos.zip" >/dev/null 2>&1
@@ -1107,6 +1128,7 @@ print_success "DDoS-Deflate"
 }
 
 function ins_epro(){
+echo -e ""
 clear
 print_install "Menginstall ePro WebSocket Proxy"
     wget -O /usr/bin/ws "${REPO}ws/ws" >/dev/null 2>&1
@@ -1148,6 +1170,7 @@ print_success "ePro WebSocket Proxy"
 }
 
 function ins_restart(){
+echo -e ""
 clear
 print_install "Restarting  All Packet"
 /etc/init.d/nginx restart
@@ -1182,7 +1205,8 @@ print_success "All Packet"
 
 #Instal Menu
 function menu(){
-    clear
+    echo -e ""
+clear
     print_install "Memasang Menu Packet"
     wget ${REPO}menu/menu.zip
     unzip menu.zip
@@ -1194,6 +1218,8 @@ function menu(){
 
 # Membaut Default Menu 
 function profile(){
+echo -e ""
+clear
 echo -e "[ ${GREEN}INFO${NC} ] reinstall --fix-missing install -y bzip2 gzip coreutils wget screen rsyslog iftop htop net-tools zip unzip wget net-tools curl nano sed screen gnupg gnupg1 bc apt-transport-https build-essential dirmngr libxml-parser-perl neofetch git lsof"
 apt-get --reinstall --fix-missing install -y bzip2 gzip coreutils wget screen rsyslog iftop htop net-tools zip unzip wget net-tools curl nano sed screen gnupg gnupg1 bc apt-transport-https build-essential dirmngr libxml-parser-perl neofetch git lsof
 echo "clear" >> .profile
@@ -1265,6 +1291,7 @@ print_success "Menu Packet"
 
 # Restart layanan after install
 function enable_services(){
+echo -e ""
 clear
 print_install "Enable Service"
     systemctl daemon-reload
@@ -1282,6 +1309,7 @@ print_install "Enable Service"
 
 # Fingsi Install Script
 function instal(){
+echo -e ""
 clear
     first_setup
     nginx_install
