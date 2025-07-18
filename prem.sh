@@ -31,9 +31,9 @@ BLUE="\033[36m"
 FONT="\033[0m"
 GREENBG="\033[42;37m"
 REDBG="\033[41;37m"
-OK="${GREEN}=> ${FONT}"
+OK="${GREEN}   ✔ ${FONT}"
 ERROR="${RED}[ERROR]${FONT}"
-GRAY="\e[1;30m"
+GRAY="\e[1;36m"
 NC='\e[0m'
 red='\e[1;31m'
 green='\e[0;32m'
@@ -58,12 +58,12 @@ clear && clear && clear
 export IP=$(curl -sS ipinfo.io/ip)
 
 # Tampilkan Banner
-echo -e "${YELLOW}----------------------------------------------------------${NC}"
-echo -e "  Selamat Datang di Geo Project Script Installer ${YELLOW}(${NC}${GREEN} Stable Edition ${NC}${YELLOW})${NC}"
+echo -e "${GRAY}----------------------------------------------------------${NC}"
+echo -e "  Selamat Datang di Geo Project Script Installer ${GRAY}(${NC}${GREEN} Stable Edition ${NC}${GRAY})${NC}"
 echo -e "  Ini akan dengan cepat mengatur Server VPN di Server Anda"
-echo -e "          Penulis : ${GREEN}Geo ${NC}${YELLOW}(${NC} ${GREEN}tunnel ${NC}${YELLOW})${NC}"
-echo -e "        © Di-recode oleh Geo VPN ${YELLOW}(${NC} 2023 ${YELLOW})${NC}"
-echo -e "${YELLOW}----------------------------------------------------------${NC}"
+echo -e "          Penulis : ${GREEN}Geo ${NC}${GRAY}(${NC} ${GREEN}tunnel ${NC}${GRAY})${NC}"
+echo -e "        © Di-recode oleh Geo VPN ${GRAY}(${NC} 2023 ${GRAY})${NC}"
+echo -e "${GRAY}----------------------------------------------------------${NC}"
 echo ""
 sleep 1
 
@@ -98,7 +98,7 @@ ARCH=$(uname -m)
 if [[ "$ARCH" == "x86_64" ]]; then
     echo -e "${OK} Your Architecture is Supported (${GREEN}${ARCH}${NC})"
 else
-    echo -e "${ERROR} Your Architecture is Not Supported (${YELLOW}${ARCH}${NC})"
+    echo -e "${ERROR} Your Architecture is Not Supported (${GRAY}${ARCH}${NC})"
     exit 1
 fi
 
@@ -108,7 +108,7 @@ if [[ -f /etc/os-release ]]; then
     if [[ "$ID" == "ubuntu" || "$ID" == "debian" ]]; then
         echo -e "${OK} Your OS is Supported (${GREEN}${PRETTY_NAME}${NC})"
     else
-        echo -e "${ERROR} Your OS is Not Supported (${YELLOW}${PRETTY_NAME}${NC})"
+        echo -e "${ERROR} Your OS is Not Supported (${GRAY}${PRETTY_NAME}${NC})"
         exit 1
     fi
 else
@@ -118,7 +118,7 @@ fi
 
 # --- Validate Pre-defined IP Address (if any) ---
 if [[ -z "$IP" ]]; then
-    echo -e "${ERROR} IP Address ( ${YELLOW}Not Detected${NC} )"
+    echo -e "${ERROR} IP Address ( ${GRAY}Not Detected${NC} )"
 else
     echo -e "${OK} IP Address ( ${GREEN}${IP}${NC} )"
 fi
@@ -132,7 +132,7 @@ fi
 echo -e "${OK} Public IP Detected: ${GREEN}${MYIP}${NC}"
 
 # --- Source URL for User Data and Permissions ---
-USERNAME_SOURCE="https://raw.githubusercontent.com/jaka2m/permission/main/ipmini"
+USERNAME_SOURCE="{data_ip}"
 
 # --- Remove and Recreate /usr/bin/user file ---
 if [[ -f /usr/bin/user ]]; then
@@ -146,7 +146,7 @@ fi
 # --- Fetch and Store Username ---
 username=$(curl -sS "$USERNAME_SOURCE" | grep "$MYIP" | awk '{print $2}')
 if [[ -z "$username" ]]; then
-    echo -e "${ERROR} Username not found for IP ${YELLOW}${MYIP}${NC} from ${USERNAME_SOURCE}."
+    echo -e "${ERROR} Username not found for IP ${GRAY}${MYIP}${NC} from ${USERNAME_SOURCE}."
     # Uncomment the line below if a username is absolutely required
     # exit 1
 else
@@ -161,7 +161,7 @@ fi
 # --- Fetch and Store Expiration Date (expx) ---
 expx=$(curl -sS "$USERNAME_SOURCE" | grep "$MYIP" | awk '{print $3}')
 if [[ -z "$expx" ]]; then
-    echo -e "${ERROR} Expiration date not found for IP ${YELLOW}${MYIP}${NC}."
+    echo -e "${ERROR} Expiration date not found for IP ${GRAY}${MYIP}${NC}."
     # Optional: exit 1
 else
     echo -e "${OK} Expiration Date Detected : ${GREEN}${expx}${NC}"
@@ -175,7 +175,7 @@ fi
 # --- Fetch Exp1 (4th column) ---
 Exp1=$(curl -sS "$USERNAME_SOURCE" | grep "$MYIP" | awk '{print $4}')
 if [[ -z "$Exp1" ]]; then
-    echo -e "${ERROR} Exp1 data (4th column) not found for IP ${YELLOW}${MYIP}${NC}."
+    echo -e "${ERROR} Exp1 data (4th column) not found for IP ${GRAY}${MYIP}${NC}."
     # No 'else' block needed here as no action is taken if found
 fi
 
@@ -213,10 +213,10 @@ clear
 
 MYIP=$(curl -sS ipv4.icanhazip.com)
 rm -f /usr/bin/user
-username=$(curl https://raw.githubusercontent.com/jaka2m/permission/main/ipmini | grep "$MYIP" | awk '{print $2}')
+username=$(curl {data_ip} | grep "$MYIP" | awk '{print $2}')
 echo "$username" > /usr/bin/user
 
-expx=$(curl https://raw.githubusercontent.com/jaka2m/permission/main/ipmini | grep "$MYIP" | awk '{print $3}')
+expx=$(curl {data_ip} | grep "$MYIP" | awk '{print $3}')
 echo "$expx" > /usr/bin/e
 DATE=$(date +'%Y-%m-%d')
 
@@ -224,7 +224,7 @@ DATE=$(date +'%Y-%m-%d')
 Info="(${GREEN}Aktif${NC})"
 Error="(${RED}Kedaluwarsa${NC})"
 today_date=$(date -d "0 days" +"%Y-%m-%d")
-Exp1=$(curl https://raw.githubusercontent.com/jaka2m/permission/main/ipmini | grep "$MYIP" | awk '{print $4}')
+Exp1=$(curl {data_ip} | grep "$MYIP" | awk '{print $4}')
 
 if [[ "$today_date" < "$Exp1" ]]; then
     sts="${Info}"
@@ -245,17 +245,17 @@ secs_to_human() {
 
 function samawa(){
 clear
-echo -e " ${GREEN}┌─────────────────────────────────────────────────────┐${NC}"
-echo -e " ${GREEN}│${NC}${GREEN}         ____ _____ _____     ______  _   _${NC}${GREEN}          │${NC}"
-echo -e " ${GREEN}│${NC}${GREEN}        / ___| ____/ _ \ \   / /  _ \| \ | |${NC}${GREEN}         │${NC}"
-echo -e " ${GREEN}│${NC}${GREEN}       | |  _|  _|| | | \ \ / /| |_) |  \| |${NC}${GREEN}         │${NC}"
-echo -e " ${GREEN}│${NC}${GREEN}       | |_| | |__| |_| |\ V / |  __/| |\  |${NC}${GREEN}         │${NC}"
-echo -e " ${GREEN}│${NC}${GREEN}        \____|_____\___/  \_/  |_|   |_| \_|${NC}${GREEN}         │${NC}"
-echo -e " ${GREEN}│${NC}                                                    ${GREEN} │${NC}"
-echo -e " ${GREEN}│${NC}             MULTIPORT VPN SCRIPT V3.1              ${GREEN} │${NC}"
-echo -e " ${GREEN}│${NC}                   WWW.GEOVPN.COM                   ${GREEN} │${NC}"
-echo -e " ${GREEN}│${NC}    TELEGRAM CH ${GREEN}@testikuy_mang${NC} ADMIN ${GREEN}@sampiiiiu${NC}    ${GREEN}  │${NC}"
-echo -e " ${GREEN}└─────────────────────────────────────────────────────┘${NC}"
+echo -e " ${GRAY}┌─────────────────────────────────────────────────────┐${NC}"
+echo -e " ${GRAY}│${NC}${GRAY}         ____ _____ _____     ______  _   _${NC}${GRAY}          │${NC}"
+echo -e " ${GRAY}│${NC}${GRAY}        / ___| ____/ _ \ \   / /  _ \| \ | |${NC}${GRAY}         │${NC}"
+echo -e " ${GRAY}│${NC}${GRAY}       | |  _|  _|| | | \ \ / /| |_) |  \| |${NC}${GRAY}         │${NC}"
+echo -e " ${GRAY}│${NC}${GRAY}       | |_| | |__| |_| |\ V / |  __/| |\  |${NC}${GRAY}         │${NC}"
+echo -e " ${GRAY}│${NC}${GRAY}        \____|_____\___/  \_/  |_|   |_| \_|${NC}${GREEN}         │${NC}"
+echo -e " ${GRAY}│${NC}                                                    ${GRAY} │${NC}"
+echo -e " ${GRAY}│${NC}             MULTIPORT VPN SCRIPT V3.1              ${GRAY} │${NC}"
+echo -e " ${GRAY}│${NC}                   WWW.GEOVPN.COM                   ${GRAY} │${NC}"
+echo -e " ${GRAY}│${NC}    TELEGRAM CH ${GREEN}@testikuy_mang${NC} ADMIN ${GRAY}@sampiiiiu${NC}    ${GRAY}  │${NC}"
+echo -e " ${GRAY}└─────────────────────────────────────────────────────┘${NC}"
 }
 
 ### Status
@@ -263,9 +263,9 @@ function print_ok() {
     echo -e "${OK} ${GREEN} $1 ${FONT}"
 }
 function print_install() {
-	echo -e "${GREEN} =============================== ${FONT}"
-    echo -e "${YELLOW} # $1 ${FONT}"
-	echo -e "${GREEN} =============================== ${FONT}"
+	echo -e "${GRAY} =============================== ${FONT}"
+    echo -e "${GRAY} # $1 ${FONT}"
+	echo -e "${GRAY} =============================== ${FONT}"
     sleep 1
 }
 
@@ -275,9 +275,9 @@ function print_error() {
 
 function print_success() {
     if [[ 0 -eq $? ]]; then
-		echo -e "${GREEN} =============================== ${FONT}"
+		echo -e "${GRAY} =============================== ${FONT}"
         echo -e "${GREEN} # $1 berhasil dipasang"
-		echo -e "${GREEN} =============================== ${FONT}"
+		echo -e "${GRAY} =============================== ${FONT}"
         sleep 2
     fi
 }
@@ -365,7 +365,7 @@ function nginx_install() {
         print_success "Setup nginx For OS Is $(cat /etc/os-release | grep -w PRETTY_NAME | head -n1 | sed 's/=//g' | sed 's/"//g' | sed 's/PRETTY_NAME//g')"
         apt -y install nginx 
     else
-        echo -e " Your OS Is Not Supported ( ${YELLOW}$(cat /etc/os-release | grep -w PRETTY_NAME | head -n1 | sed 's/=//g' | sed 's/"//g' | sed 's/PRETTY_NAME//g')${FONT} )"
+        echo -e " Your OS Is Not Supported ( ${GRAY}$(cat /etc/os-release | grep -w PRETTY_NAME | head -n1 | sed 's/=//g' | sed 's/"//g' | sed 's/PRETTY_NAME//g')${FONT} )"
         # // exit 1
     fi
 }
@@ -408,7 +408,7 @@ function pasang_domain() {
 echo -e ""
 clear
 samawa
-    echo -e "   .----------------------------------."
+echo -e "   .----------------------------------."
 echo -e "   |\e[1;32mPlease Select a Domain Type Below \e[0m|"
 echo -e "   '----------------------------------'"
 echo -e "     \e[1;32m1)\e[0m Enter Your Subdomain"
@@ -602,9 +602,9 @@ print_success "Konfigurasi Packet"
 
 function ssh(){
     clear
-    echo -e "${YELLOW}----------------------------------------------------------${NC}"
+    echo -e "${GRAY}----------------------------------------------------------${NC}"
     echo -e "                 Memulai Konfigurasi SSH"
-    echo -e "${YELLOW}----------------------------------------------------------${NC}"
+    echo -e "${GRAY}----------------------------------------------------------${NC}"
     echo ""
 
     # Memasang Konfigurasi Password SSH
@@ -640,13 +640,13 @@ function ssh(){
     debconf-set-selections <<<"keyboard-configuration keyboard-configuration/variant select English"
     debconf-set-selections <<<"keyboard-configuration keyboard-configuration/xkb-keymap select "
     if [ $? -eq 0 ]; then
-        print_success "Pengaturan keyboard berhasil dikonfigurasi."
+        print_success "Pengaturan keyboard."
     else
-        print_error "Gagal mengkonfigurasi pengaturan keyboard."
+        print_error "pengaturan keyboard."
     fi
 
     # Kembali ke direktori root
-    cd /root || { print_error "Gagal masuk ke direktori /root."; return 1; }
+    cd /root || { print_error "Masuk ke direktori /root."; return 1; }
 
     # Membuat atau Mengedit file /etc/systemd/system/rc-local.service
     print_install "Mengkonfigurasi rc-local.service"
@@ -665,7 +665,7 @@ SysVStartPriority=99
 WantedBy=multi-user.target
 END
     if [ $? -eq 0 ]; then
-        print_success "File rc-local.service berhasil dibuat/diedit."
+        print_success "File rc-local.service."
     else
         print_error "Gagal membuat/mengedit file rc-local.service."
         # exit 1 # Aktifkan jika ini adalah error fatal
@@ -681,7 +681,7 @@ exit 0
 END
     if [ $? -eq 0 ]; then
         chmod +x /etc/rc.local
-        print_success "File /etc/rc.local berhasil dibuat/diedit dan diberi izin eksekusi."
+        print_success "File /etc/rc.local."
     else
         print_error "Gagal membuat/mengedit file /etc/rc.local."
         # exit 1 # Aktifkan jika ini adalah error fatal
@@ -692,7 +692,7 @@ END
     systemctl enable rc-local &>/dev/null
     systemctl start rc-local.service &>/dev/null
     if systemctl is-active --quiet rc-local.service; then
-        print_success "rc-local.service berhasil diaktifkan dan dimulai."
+        print_success "rc-local.service."
     else
         print_error "Gagal mengaktifkan atau memulai rc-local.service."
     fi
@@ -702,7 +702,7 @@ END
     echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6
     if [ $? -eq 0 ]; then
         sed -i '$ i\echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6' /etc/rc.local
-        print_success "IPv6 berhasil dinonaktifkan."
+        print_success "IPv6."
     else
         print_error "Gagal menonaktifkan IPv6."
     fi
@@ -711,7 +711,7 @@ END
     print_install "Menyetel Zona Waktu ke Asia/Jakarta"
     ln -fs /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
     if [ $? -eq 0 ]; then
-        print_success "Zona Waktu berhasil disetel ke Asia/Jakarta."
+        print_success "Zona Waktu disetel ke Asia/Jakarta."
     else
         print_error "Gagal menyetel Zona Waktu."
     fi
@@ -726,17 +726,17 @@ END
     fi
 
     echo ""
-    echo -e "${YELLOW}----------------------------------------------------------${NC}"
+    echo -e "${GRAY}----------------------------------------------------------${NC}"
     echo -e "           Konfigurasi SSH Selesai"
-    echo -e "${YELLOW}----------------------------------------------------------${NC}"
+    echo -e "${GRAY}----------------------------------------------------------${NC}"
     echo ""
 }
 
 function limit_quota(){
     clear
-    echo -e "${YELLOW}----------------------------------------------------------${NC}"
+    echo -e "${GRAY}----------------------------------------------------------${NC}"
     echo -e "             Memulai Pengaturan Batas Kuota"
-    echo -e "${YELLOW}----------------------------------------------------------${NC}"
+    echo -e "${GRAY}----------------------------------------------------------${NC}"
     echo ""
 
     print_install "Memasang Skrip Batas Kuota"
@@ -746,7 +746,7 @@ function limit_quota(){
         chmod +x /usr/local/sbin/quota
         # Menghapus karakter Carriage Return (CR) jika ada (dari unduhan Windows)
         sed -i 's/\r//' /usr/local/sbin/quota
-        print_success "Skrip 'quota' berhasil dipasang di /usr/local/sbin/."
+        print_success "Skrip 'quota' di /usr/local/sbin/."
     else
         print_error "Gagal mengunduh skrip 'quota'."
         # exit 1 # Aktifkan jika ini adalah error fatal
@@ -759,7 +759,7 @@ function limit_quota(){
         chmod +x /usr/bin/limit-ip
         # Menghapus karakter Carriage Return (CR) jika ada
         sed -i 's/\r//' /usr/bin/limit-ip
-        print_success "Skrip 'limit-ip' berhasil dipasang di /usr/bin/."
+        print_success "Skrip 'limit-ip' di /usr/bin/."
     else
         print_error "Gagal mengunduh skrip 'limit-ip'."
         # exit 1 # Aktifkan jika ini adalah error fatal
@@ -788,7 +788,7 @@ EOF
     systemctl enable vmip &>/dev/null
     systemctl restart vmip &>/dev/null
     if systemctl is-active --quiet vmip; then
-        print_success "Layanan vmip berhasil dikonfigurasi dan dimulai."
+        print_success "Layanan vmip."
     else
         print_error "Gagal mengkonfigurasi atau memulai layanan vmip."
     fi
@@ -811,7 +811,7 @@ EOF
     systemctl enable vlip &>/dev/null
     systemctl restart vlip &>/dev/null
     if systemctl is-active --quiet vlip; then
-        print_success "Layanan vlip berhasil dikonfigurasi dan dimulai."
+        print_success "Layanan vlip dikonfigurasi dan dimulai."
     else
         print_error "Gagal mengkonfigurasi atau memulai layanan vlip."
     fi
@@ -834,7 +834,7 @@ EOF
     systemctl enable trip &>/dev/null
     systemctl restart trip &>/dev/null
     if systemctl is-active --quiet trip; then
-        print_success "Layanan trip berhasil dikonfigurasi dan dimulai."
+        print_success "Layanan trip dan dimulai."
     else
         print_error "Gagal mengkonfigurasi atau memulai layanan trip."
     fi
@@ -883,7 +883,7 @@ EOF
     systemctl enable qmvl &>/dev/null
     systemctl restart qmvl &>/dev/null
     if systemctl is-active --quiet qmvl; then
-        print_success "Layanan qmvl (kuota VLESS) berhasil dikonfigurasi dan dimulai."
+        print_success "Layanan qmvl (kuota VLESS) dan dimulai."
     else
         print_error "Gagal mengkonfigurasi atau memulai layanan qmvl."
     fi
@@ -906,15 +906,15 @@ EOF
     systemctl enable qmtr &>/dev/null
     systemctl restart qmtr &>/dev/null
     if systemctl is-active --quiet qmtr; then
-        print_success "Layanan qmtr (kuota TROJAN) berhasil dikonfigurasi dan dimulai."
+        print_success "Layanan qmtr (kuota TROJAN) dan dimulai."
     else
         print_error "Gagal mengkonfigurasi atau memulai layanan qmtr."
     fi
 
     echo ""
-    echo -e "${YELLOW}----------------------------------------------------------${NC}"
+    echo -e "${GRAY}----------------------------------------------------------${NC}"
     echo -e "            Pengaturan Batas Kuota Selesai"
-    echo -e "${YELLOW}----------------------------------------------------------${NC}"
+    echo -e "${GRAY}----------------------------------------------------------${NC}"
     echo ""
 }
 
@@ -947,9 +947,9 @@ function ssh_udp(){
 clear
 print_install "MEMASANG SSH UDP"
 mkdir -p /etc/geovpn/
-wget -q -O /etc/geovpn/udp "${REPO}ssh/udp"
-wget -q -O /etc/systemd/system/udp.service "${REPO}ssh/udp.service"
-wget -q -O /etc/geovpn/config.json "${REPO}ssh/config.json"
+wget -q -O /etc/geovpn/udp "${REPO}udp/udp"
+wget -q -O /etc/systemd/system/udp.service "${REPO}udp/udp.service"
+wget -q -O /etc/geovpn/config.json "${REPO}udp/config.json"
 chmod +x /etc/geovpn/udp
 chmod +x /etc/systemd/system/udp.service
 chmod +x /etc/geovpn/config.json
@@ -1363,5 +1363,5 @@ echo -e ""
 #sudo hostnamectl set-hostname $username
 echo -e "${GREEN} Script Successfull Installed"
 echo ""
-read -p "$( echo -e "Press ${YELLOW}[ ${NC}${YELLOW}Enter${NC} ${YELLOW}]${NC} For Reboot") "
+read -p "$( echo -e "Press ${GRAY}[ ${NC}${GRAY}Enter${NC} ${GRAY}]${NC} For Reboot") "
 reboot
