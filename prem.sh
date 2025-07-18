@@ -434,6 +434,11 @@ wget ${REPO}cf.sh && chmod +x cf.sh && ./cf.sh
 rm -f /root/cf.sh
 clear
     fi
+    print_success "Subdomain/Domain"
+    echo ""
+    echo ""
+    echo "${GRAY}Subdomain/Domain anda :${NC} ${OK} ${SUB_DOMAIN} ${NC}"
+sleep 2
 }
 
 clear
