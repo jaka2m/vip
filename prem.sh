@@ -132,7 +132,7 @@ fi
 echo -e "${OK} Public IP Detected: ${GREEN}${MYIP}${NC}"
 
 # --- Source URL for User Data and Permissions ---
-USERNAME_SOURCE="{data_ip}"
+USERNAME_SOURCE="https://raw.githubusercontent.com/jaka2m/permission/main/ipmini"
 
 # --- Remove and Recreate /usr/bin/user file ---
 if [[ -f /usr/bin/user ]]; then
@@ -213,10 +213,10 @@ clear
 
 MYIP=$(curl -sS ipv4.icanhazip.com)
 rm -f /usr/bin/user
-username=$(curl {data_ip} | grep "$MYIP" | awk '{print $2}')
+username=$(curl ${data_ip} | grep "$MYIP" | awk '{print $2}')
 echo "$username" > /usr/bin/user
 
-expx=$(curl {data_ip} | grep "$MYIP" | awk '{print $3}')
+expx=$(curl ${data_ip} | grep "$MYIP" | awk '{print $3}')
 echo "$expx" > /usr/bin/e
 DATE=$(date +'%Y-%m-%d')
 
@@ -224,7 +224,7 @@ DATE=$(date +'%Y-%m-%d')
 Info="(${GREEN}Aktif${NC})"
 Error="(${RED}Kedaluwarsa${NC})"
 today_date=$(date -d "0 days" +"%Y-%m-%d")
-Exp1=$(curl {data_ip} | grep "$MYIP" | awk '{print $4}')
+Exp1=$(curl ${data_ip} | grep "$MYIP" | awk '{print $4}')
 
 if [[ "$today_date" < "$Exp1" ]]; then
     sts="${Info}"
