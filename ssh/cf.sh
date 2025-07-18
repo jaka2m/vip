@@ -6,9 +6,14 @@
 MYIP=$(wget -qO- ipinfo.io/ip);
 clear
 apt install jq curl -y >/dev/null 2>&1
-read -rp "Sub Domain (Contoh: geo): " -e sub
-DOMAIN=krikkrik.tech
-SUB_DOMAIN=${sub}.krikkrik.tech
+generate_random_string() {
+    head /dev/urandom | tr -dc a-z0-9 | head -c 5
+}
+
+DOMAIN="krikkrik.tech"
+sub=$(generate_random_string)
+SUB_DOMAIN=${sub}.${DOMAIN}
+
 CF_ID=desalekong24@gmail.com
 CF_KEY=028462e851772f0528310f0ba91d848850886
 set -euo pipefail
