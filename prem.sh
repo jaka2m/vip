@@ -1368,5 +1368,19 @@ echo -e ""
 #sudo hostnamectl set-hostname $username
 echo -e "${GREEN} Script Successfull Installed"
 echo ""
-read -p "$( echo -e "Press ${GRAY}[ ${NC}${GRAY}Enter${NC} ${GRAY}]${NC} For Reboot") "
-reboot
+read -p "$( echo -e "Press ${GRAY}[ ${NC}${GRAY}Y/y${NC} ${GRAY}]${NC} For Reboot or ${GRAY}[ ${NC}${GRAY}N/n${NC} ${GRAY}]${NC} To Exit: ")" choice
+
+case "$choice" in
+    y|Y )
+        echo "Rebooting now..."
+        reboot
+        ;;
+    n|N )
+        echo "Exiting without reboot."
+        exit 0
+        ;;
+    * )
+        echo "Invalid choice. Exiting without reboot."
+        exit 1
+        ;;
+esac
